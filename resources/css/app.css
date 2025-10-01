@@ -1,0 +1,48 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+    font-family: 'Perfectly Vintages';
+    src: url('../fonts/Perfectly Vintages.otf') format('woff2'),
+    url('../fonts/Perfectly Vintages.otf') format('woff');
+}
+
+@font-face {
+    font-family: 'Akira Expanded';
+    src: url('../fonts/Akira Expanded Demo.otf') format('woff2'),
+    url('../fonts/Akira Expanded Demo.otf') format('woff');
+}
+
+:root {
+    --post-bg: white;
+    --post-border: white;
+    --post-text: black;
+    --input-bg: whitesmoke;
+    --input-border: lightgrey;
+}
+
+body {
+    background-color: rgb(241, 211, 211);
+    color: black;
+}
+
+body.dark {
+    background-color: #222;
+    color: white;
+    --post-bg: #333;
+    --post-border: #444;
+    --post-text: #eee;
+    --input-bg: #2a2a2a;
+    --input-border: #555;
+}
+
+body.dark h1,
+body.dark p,
+body.dark a {
+    color: white;
+}
+
+body.dark a:hover {
+    color: red;
+}
