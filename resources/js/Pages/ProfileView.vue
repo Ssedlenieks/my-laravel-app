@@ -165,14 +165,11 @@ async function fetchUser() {
 
 async function fetchStats() {
     if (!user.value.id) return;
-
     try {
         const { data: posts } = await axios.get('/posts', {
             params: { user_id: user.value.id }
         });
-
         postCount.value = Array.isArray(posts) ? posts.length : 0;
-
         let likesSum = 0;
         for (const post of posts) {
             if (post.reactionCounts && typeof post.reactionCounts.like === 'number') {
@@ -233,6 +230,7 @@ async function saveProfile() {
         await fetchStats();
     } catch (e) {
         console.error('Error saving profile:', e);
+        showMessage('Failed to save profile.');
     }
 }
 
@@ -297,8 +295,8 @@ onMounted(async () => {
     font-family: sans-serif;
     color: var(--post-text);
     transition: background-color 0.3s ease,
-    border-color 0.3s ease,
-    color 0.3s ease;
+                border-color 0.3s ease,
+                color 0.3s ease;
 }
 
 .profile h1 {

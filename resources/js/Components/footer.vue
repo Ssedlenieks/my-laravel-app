@@ -2,27 +2,27 @@
     <footer class="app-footer">
         <div class="footer-container">
             <div class="footer-section">
-                <h3>About Mireqx</h3>
+                <h3>About Labazina</h3>
                 <p>
-                    Mireqx is a community-driven fashion platform where enthusiasts and professionals share
-                    insights, trends, and stories. Join us to explore the world of style and creativity.
+                    Labazina is your trusted news source delivering the latest stories, insights, and updates
+                    across the globe. Stay informed and connected with our dedicated journalism community.
                 </p>
             </div>
 
             <div class="footer-section">
                 <h3>Contact Us</h3>
-                <p>Email: <a>info@mireqx.com</a></p>
+                <p>Email: <a href="mailto:info@labazina.com">info@labazina.com</a></p>
                 <p>Phone: +371 123 4567</p>
                 <div class="social-icons">
-                    <a>Instagram</a>
-                    <a>Facebook</a>
-                    <a>TikTok</a>
+                    <a href="#" aria-label="Instagram">Instagram</a>
+                    <a href="#" aria-label="Facebook">Facebook</a>
+                    <a href="#" aria-label="TikTok">TikTok</a>
                 </div>
             </div>
         </div>
 
         <div class="footer-bottom">
-            <p>© 2025 Mireqx — All rights reserved.</p>
+            <p>© 2025 Labazina — All rights reserved.</p>
         </div>
     </footer>
 </template>
@@ -35,18 +35,18 @@ export default {
 
 <style scoped>
 .app-footer {
-    background-color: whitesmoke;
+    background-color: var(--post-bg);
     font-family: "Akira Expanded", sans-serif;
-    color: black;
+    color: var(--post-text);
     padding: 40px 20px 20px;
-    box-shadow: rgb(244, 153, 153) 1px 1px 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
     transition: background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
 }
 
 body.dark .app-footer {
     background-color: #222;
-    color: whitesmoke;
-    box-shadow: rgb(0, 0, 0) 1px 1px 10px;
+    color: var(--post-text);
+    box-shadow: 0 2px 10px rgba(15, 23, 42, 0.5);
 }
 
 .footer-container {
@@ -65,30 +65,32 @@ body.dark .app-footer {
 .footer-section h3 {
     font-size: 20px;
     margin-bottom: 12px;
+    color: var(--post-text);
 }
 
 .footer-section p {
     font-size: 14px;
     line-height: 1.5;
     margin: 6px 0;
+    color: var(--post-text);
 }
 
 .footer-section a {
-    color: black;
+    color: var(--post-text);
     text-decoration: none;
     transition: color 0.3s ease;
 }
 
 .footer-section a:hover {
-    color: rgb(255, 0, 0);
+    color: #f87171;
 }
 
 body.dark .footer-section a {
-    color: whitesmoke;
+    color: var(--post-text);
 }
 
 body.dark .footer-section a:hover {
-    color: rgb(255, 0, 0);
+    color: #f87171;
 }
 
 .social-icons {
@@ -99,6 +101,7 @@ body.dark .footer-section a:hover {
 
 .social-icons a {
     font-size: 14px;
+    color: var(--post-text);
 }
 
 .footer-bottom {
@@ -106,6 +109,7 @@ body.dark .footer-section a:hover {
     margin-top: 30px;
     font-size: 13px;
     opacity: 0.8;
+    color: var(--post-text);
 }
 
 @media (max-width: 768px) {

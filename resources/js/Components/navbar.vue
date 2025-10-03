@@ -1,26 +1,31 @@
+> Jegorciks:
 <template>
     <nav :class="{ dark: isDarkMode }">
         <div class="left">
-            <a href="/history" class="desktop-only">History</a>
-            <a href="/runway" class="desktop-only">Runway</a>
-            <i class="fas fa-bars mobile-only" @click="toggleMenu"></i>
+            <h1 @click="goHome">Labas Ziņas</h1>
         </div>
 
-        <h1 @click="goHome">Mireqx</h1>
+        <div class="center">
+            <a href="/history" class="desktop-only">Jaunākās ziņas</a>
+            <a href="/history" class="desktop-only">Tehnoloģijas</a>
+            <a href="/runway" class="desktop-only">Sports</a>
+            <a href="/style" class="desktop-only">Pētījumi</a>
+        </div>
 
         <div class="right">
-            <a href="/style" class="desktop-only">Style</a>
             <i :class="isDarkMode ? 'fas fa-sun' : 'fas fa-moon'" @click="toggleDarkMode"></i>
             <a @click.prevent="goToProfile">
                 <i class="fas fa-user"></i>
                 <span v-if="user" class="username">{{ user.name }}</span>
             </a>
+            <i class="fas fa-bars mobile-only" @click="toggleMenu"></i>
         </div>
 
         <div v-if="isMenuOpen" class="mobile-menu">
-            <a href="/history">History</a>
-            <a href="/runway">Runway</a>
-            <a href="/style">Style</a>
+            <a href="/history">Jaunākās ziņas</a>
+            <a href="/runway">Tehnoloģijas</a>
+            <a href="/style">Sports</a>
+            <a href="/style">Pētījumi</a>
         </div>
     </nav>
 </template>
@@ -79,11 +84,11 @@ nav {
     justify-content: space-between;
     align-items: center;
     padding: 15px 30px;
-    height: 60px;
+    height: 100px;
     background-color: whitesmoke;
-    box-shadow: rgb(244, 153, 153) 1px 1px 10px;
-    transition: background-color 0.3s ease, color 0.3s ease;
-    font-family: "Akira Expanded";
+    box-shadow: lightblue 1px 1px 10px;
+    /*transition: background-color 0.3s ease, color 0.3s ease;*/
+    font-family: "Aileron";
     position: relative;
 }
 
@@ -92,18 +97,32 @@ body.dark nav {
     box-shadow: rgb(0, 0, 0) 1px 1px 10px;
 }
 
-.left, .right {
+.left {
     display: flex;
+    align-items: center;
+}
+
+.center {
+    display: flex;
+    justify-content: center;
     align-items: center;
     gap: 30px;
 }
 
-h1 {
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 24px;
+.right {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 30px;
+}
+
+.left h1 {
+    font-family: "AbrilFatface";
+    position: static;
+    transform: none;
+    font-size: 40px;
     cursor: pointer;
+    margin-right: 30px;
 }
 
 h1:hover {
@@ -140,7 +159,7 @@ body.dark nav i:hover {
 
 .mobile-menu {
     position: absolute;
-    top: 60px;
+    top: 100px;
     left: 0;
     width: 100%;
     background: whitesmoke;
@@ -148,8 +167,9 @@ body.dark nav i:hover {
     flex-direction: column;
     text-align: center;
     padding: 10px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: lightblue 1px 1px 5px;
     transition: all 0.3s ease;
+    z-index: 10;
 }
 
 body.dark .mobile-menu {
@@ -161,22 +181,19 @@ body.dark .mobile-menu {
     font-size: 18px;
 }
 
-@media (max-width: 768px) {
-    .desktop-only {
+@media (max-width: 900px) {
+    .center {
         display: none;
     }
     .mobile-only {
         display: block;
-        font-size: 30px;
-        cursor: pointer;
-        transition: color 0.3s ease;
     }
-    .left, .right {
-        gap: 10px;
+    .left h1 {
+        font-size: 24px;
     }
 }
 
-@media (min-width: 769px) {
+@media (min-width: 901px) {
     .mobile-only {
         display: none;
     }
