@@ -5,7 +5,7 @@
 
     <div class="news-grid">
       <div v-for="(image, index) in previewImages" :key="index" class="news-card">
-        <a :href="`/runway`">
+        <a :href="newsLinks[index]">
           <img :src="image" alt="News preview" class="news-img" />
           <div class="news-content">
             <h3 class="headline">{{ designerNames[index] }}</h3>
@@ -15,7 +15,6 @@
       </div>
     </div>
 
-    <!-- Show post form only if user is logged in -->
     <post-form v-if="user" />
 
     <AppFooter />
@@ -40,6 +39,12 @@ const designerNames = [
   "Global Affairs Briefing",
   "Science & Innovation",
   "World Market Insights"
+];
+
+const newsLinks = [
+    "/newest",
+    "/tech",
+    "/studies"
 ];
 </script>
 

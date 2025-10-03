@@ -12,10 +12,11 @@ use App\Http\Controllers\CategoryController;
 use Inertia\Inertia;
 
 Route::get('/', fn() => Inertia::render('HomeView'))->name('home');
-Route::get('/history', fn() => Inertia::render('HistoryView'))->name('history');
-Route::get('/runway', fn() => Inertia::render('RunwayView'))->name('runway');
-Route::get('/style', fn() => Inertia::render('StyleView'))->name('style');
+Route::get('/newest', fn() => Inertia::render('NewestView'))->name('newest');
+Route::get('/tech', fn() => Inertia::render('TechView'))->name('runway');
+Route::get('/sports', fn() => Inertia::render('SportsView'))->name('style');
 Route::get('/login', fn() => Inertia::render('LoginView'))->name('login');
+Route::get('/studies', fn() => Inertia::render('StudiesView'))->name('studies');
 Route::get('/profile', fn() => Inertia::render('ProfileView'))->name('profile');
 
 Route::get('/posts', [PostController::class, 'index']);

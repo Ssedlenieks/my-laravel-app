@@ -1,4 +1,3 @@
-> Jegorciks:
 <template>
     <nav :class="{ dark: isDarkMode }">
         <div class="left">
@@ -6,10 +5,10 @@
         </div>
 
         <div class="center">
-            <a href="/history" class="desktop-only">Jaunākās ziņas</a>
-            <a href="/history" class="desktop-only">Tehnoloģijas</a>
-            <a href="/runway" class="desktop-only">Sports</a>
-            <a href="/style" class="desktop-only">Pētījumi</a>
+            <a href="/newest" class="desktop-only">Jaunākās ziņas</a>
+            <a href="/tech" class="desktop-only">Tehnoloģijas</a>
+            <a href="/sports" class="desktop-only">Sports</a>
+            <a href="/studies" class="desktop-only">Pētījumi</a>
         </div>
 
         <div class="right">
@@ -22,10 +21,10 @@
         </div>
 
         <div v-if="isMenuOpen" class="mobile-menu">
-            <a href="/history">Jaunākās ziņas</a>
-            <a href="/runway">Tehnoloģijas</a>
-            <a href="/style">Sports</a>
-            <a href="/style">Pētījumi</a>
+            <a href="/newest">Jaunākās ziņas</a>
+            <a href="/tech">Tehnoloģijas</a>
+            <a href="/sports">Sports</a>
+            <a href="/studies">Pētījumi</a>
         </div>
     </nav>
 </template>

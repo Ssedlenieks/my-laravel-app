@@ -1,9 +1,9 @@
 <template>
-    <div class="style">
-        <navbar />
-        <h1>Find your style</h1>
-        <post-form :hide-categories="true" filter-category-name="Style" />
-        <AppFooter />
+    <div class="tech">
+        <navbar/>
+        <h1>Jaunākās tehnoloģijas</h1>
+        <post-form :hide-categories="true" filter-category-name="Runway" />
+        <AppFooter/>
     </div>
 </template>
 
@@ -12,21 +12,20 @@ import navbar from "@/Components/navbar.vue";
 import AppFooter from "@/Components/footer.vue";
 
 export default {
-    name: 'StyleView',
+    name: 'TechView',
     components: { navbar, AppFooter },
-}
+};
 </script>
 
 <style scoped>
-
 h1 {
     text-align: center;
     color: black;
     font-size: 45px;
-    font-family: 'Perfectly Vintages';
-    font-weight: normal;
+    font-family: 'Aileron';
+    font-weight: bold;
     padding: 30px;
 }
 
-</style>
 
+</style>

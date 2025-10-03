@@ -595,7 +595,7 @@ export default {
     align-items: flex-start;
 }
 .category-box > label {
-    font-family: "Perfectly Vintages";
+    font-family: "Aileron";
     font-size: 16px;
     margin-bottom: 6px;
     color: var(--post-text);
@@ -604,7 +604,7 @@ export default {
     display: flex;
     flex-wrap: wrap;
     gap: 24px;
-    font-family: "Perfectly Vintages";
+    font-family: "Aileron";
     font-size: 14px;
 }
 .checkbox-item {
@@ -695,7 +695,7 @@ export default {
     color 0.3s ease;
 }
 .post h3 {
-    font-family: "Akira Expanded";
+    font-family: "AbrilFatface";
     font-size: 18px;
     margin-bottom: 8px;
     line-height: 1.2;
@@ -977,7 +977,7 @@ export default {
     border-radius: 8px;
 }
 .create-post-container {
-    font-family: "Perfectly Vintages";
+    font-family: "Aileron";
 }
 .create-post-container input,
 .create-post-container textarea {
@@ -987,7 +987,7 @@ export default {
     border: 1px solid var(--input-border);
     border-radius: 4px;
     font-size: 14px;
-    font-family: "Perfectly Vintages";
+    font-family: "Aileron";
     background-color: var(--input-bg);
     color: var(--post-text);
     transition: background-color 0.3s ease,
@@ -1004,14 +1004,14 @@ export default {
     margin-top: 20px;
     cursor: pointer;
     font-size: 16px;
-    font-family: "Perfectly Vintages";
+    font-family: "Aileron";
     transition: filter 0.2s ease;
 }
 .create-post-container button:hover {
     filter: brightness(1.1);
 }
 .create-post-container h2 {
-    font-family: "Perfectly Vintages";
+    font-family: "Aileron";
     font-size: 35px;
     text-align: center;
     margin-bottom: 20px;
@@ -1029,7 +1029,7 @@ export default {
     margin-bottom: 12px;
 }
 .create-category-box > label {
-    font-family: "Perfectly Vintages";
+    font-family: "Aileron";
     font-size: 16px;
     margin-bottom: 4px;
     color: var(--post-text);
@@ -1038,7 +1038,7 @@ export default {
     display: flex;
     flex-wrap: wrap;
     gap: 12px;
-    font-family: "Perfectly Vintages";
+    font-family: "Aileron";
     font-size: 14px;
 }
 .create-categories-checkboxes .checkbox-item {
@@ -1087,7 +1087,7 @@ export default {
     border: 1px solid var(--input-border);
     border-radius: 4px;
     font-size: 14px;
-    font-family: "Perfectly Vintages";
+    font-family: "Aileron";
     background-color: var(--input-bg);
     color: var(--post-text);
     transition: background-color 0.3s ease,
@@ -1108,7 +1108,7 @@ export default {
     border-radius: 4px;
     cursor: pointer;
     font-size: 14px;
-    font-family: "Perfectly Vintages";
+    font-family: "Aileron";
     transition: filter 0.2s ease;
 }
 .buttons-row button:hover {
@@ -1126,7 +1126,7 @@ export default {
 .edit-preview-col p {
     color: var(--post-text);
     margin-bottom: 12px;
-    font-family: "Perfectly Vintages";
+    font-family: "Aileron";
 }
 
 .comments-delete {

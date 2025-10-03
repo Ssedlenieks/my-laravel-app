@@ -36,7 +36,7 @@ export default {
 <style scoped>
 .app-footer {
     background-color: var(--post-bg);
-    font-family: "AbrilFatface", sans-serif;
+    font-family: "Aileron";
     color: var(--post-text);
     padding: 40px 20px 20px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
