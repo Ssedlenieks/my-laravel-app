@@ -2,17 +2,17 @@
     <footer class="app-footer">
         <div class="footer-container">
             <div class="footer-section">
-                <h3>About Labazina</h3>
+                <h3>Par Labaziņa</h3>
                 <p>
-                    Labazina is your trusted news source delivering the latest stories, insights, and updates
-                    across the globe. Stay informed and connected with our dedicated journalism community.
+                    Labaziņa ir uzticams ziņu avots, kas sniedz jaunākās ziņas, ieskatus un atjauninājumus
+                    visā pasaulē. Sekojiet līdzi un sazinieties ar mūsu veltīto žurnālistikas kopienu.
                 </p>
             </div>
 
             <div class="footer-section">
-                <h3>Contact Us</h3>
-                <p>Email: <a href="mailto:info@labazina.com">info@labazina.com</a></p>
-                <p>Phone: +371 123 4567</p>
+                <h3>Sazinieties ar mums</h3>
+                <p>Epasts : <a href="mailto:info@labazina.com">info@labazina.com</a></p>
+                <p>Tālrunis: +371 123 4567</p>
                 <div class="social-icons">
                     <a href="#" aria-label="Instagram">Instagram</a>
                     <a href="#" aria-label="Facebook">Facebook</a>
@@ -36,7 +36,7 @@ export default {
 <style scoped>
 .app-footer {
     background-color: var(--post-bg);
-    font-family: "Akira Expanded", sans-serif;
+    font-family: "AbrilFatface", sans-serif;
     color: var(--post-text);
     padding: 40px 20px 20px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);

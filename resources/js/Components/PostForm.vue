@@ -10,13 +10,13 @@
                                 v-model="searchQuery"
                                 placeholder="Search posts..."
                             />
-                            <button class="search-btn" @click="searchPosts">Search</button>
+                            <button class="search-btn" @click="searchPosts">Meklēt</button>
                         </div>
                     </div>
                 </div>
                 <div class="filter-center">
                     <div class="filter-item category-box" v-if="!hideCategories">
-                        <label>Select Categories:</label>
+                        <label>IZvēlēties kategorijas:</label>
                         <div class="categories-checkboxes">
                             <label
                                 v-for="c in categories"
@@ -33,15 +33,15 @@
                                 />
                             </label>
                         </div>
-                        <p class="found-count">Found {{ posts.length }} posts</p>
+                        <p class="found-count">Atrasti {{ posts.length }} ieraksti</p>
                     </div>
                 </div>
                 <div class="filter-right">
                     <div class="filter-item sort-box">
-                        <label for="sortBy">Sort By:</label>
+                        <label for="sortBy">Kārtot pēc:</label>
                         <select v-model="sortBy" @change="fetchPosts">
-                            <option value="reactions">Reactions</option>
-                            <option value="date">Date</option>
+                            <option value="reactions">Reakcijas</option>
+                            <option value="date">Datums</option>
                         </select>
                     </div>
                 </div>
@@ -121,11 +121,11 @@
                             <div v-if="isLoggedIn">
                 <textarea
                     v-model="newCommentContent"
-                    placeholder="Add a comment..."
+                    placeholder="Pievienot komentāru..."
                 ></textarea>
-                                <button @click="addComment(post.id)">Post Comment</button>
+                                <button @click="addComment(post.id)">Publicēt komentāru</button>
                             </div>
-                            <p v-else>Log in to comment</p>
+                            <p v-else>Pierakstieties lai rakstītu komentāru</p>
                         </div>
                     </div>
                 </div>
@@ -134,15 +134,15 @@
 
         <div v-if="isLoggedIn" class="create-post-wrapper">
             <div class="create-post-container">
-                <h2 class="create-title">Write Your Thoughts</h2>
+                <h2 class="create-title">Rakstiet savas domas</h2>
                 <form @submit.prevent="submitPost" enctype="multipart/form-data">
                     <div>
-                        <label>Post Title:</label>
+                        <label>Ziņas nosaukums:</label>
                         <input type="text" v-model="post.title" required />
                     </div>
 
                     <div class="category-box create-category-box">
-                        <label>Select Categories:</label>
+                        <label>Izvēlēties kategorijas:</label>
                         <div class="categories-checkboxes create-categories-checkboxes">
                             <label
                                 v-for="c in categories"
@@ -161,16 +161,16 @@
                     </div>
 
                     <div>
-                        <label>Content:</label>
+                        <label>Saturs:</label>
                         <textarea v-model="post.content" required></textarea>
-                        <label>Photo:</label>
+                        <label>Foto:</label>
                         <input
                             type="file"
                             accept="image/*"
                             @change="handleImageUpload"
                             ref="fileInput"
                         />
-                        <button type="submit">Publish Post</button>
+                        <button type="submit">Publicēt ziņu</button>
                     </div>
                 </form>
                 <p v-if="message" class="success-message">{{ message }}</p>
@@ -181,7 +181,7 @@
             <div class="modal-content full-post-container" @click.stop>
                 <div class="post-full">
                     <div class="post-full-header">
-                        <h2>{{ selectedPost.user.username }}'s Post</h2>
+                        <h2>{{ selectedPost.user.username }}'s Ziņas</h2>
                         <button class="close-btn" @click="closeModal">×</button>
                     </div>
                     <h3>{{ selectedPost.title }}</h3>
@@ -191,7 +191,7 @@
                     <p class="post-full-content" v-html="selectedPost.content"></p>
                 </div>
                 <div class="comments-sidebar">
-                    <h3>Comments</h3>
+                    <h3>Komentāri</h3>
                     <div v-if="selectedPost.comments?.length" class="comments-list">
                         <div
                             v-for="cm in selectedPost.comments"
@@ -220,11 +220,11 @@
                     <div class="add-comment" v-if="isLoggedIn">
                     <textarea
                         v-model="newCommentContent"
-                        placeholder="Add a comment"
+                        placeholder="Pievienot komentāru"
                     ></textarea>
-                        <button @click="addComment(selectedPost.id)">Send</button>
+                        <button @click="addComment(selectedPost.id)">Publicēt</button>
                     </div>
-                    <p v-else class="login-note">Log in to add a comment</p>
+                    <p v-else class="login-note">Pierakstieties lai pievienotu komentāru</p>
                 </div>
             </div>
         </div>
@@ -253,11 +253,11 @@
                             />
                         </label>
                     </div>
-                    <label>Change Photo:</label>
+                    <label>Mainīt :</label>
                     <input type="file" accept="image/*" @change="handleImageUpload" />
                     <div class="buttons-row">
-                        <button @click="updatePost">Save</button>
-                        <button @click="cancelEdit">Cancel</button>
+                        <button @click="updatePost">Saglabāt</button>
+                        <button @click="cancelEdit">Atcelt</button>
                     </div>
                 </div>
                 <div class="edit-preview-col">
