@@ -10,6 +10,10 @@ use App\Http\Controllers\CommentController;
 use App\Http\Controllers\ReactionController;
 use App\Http\Controllers\CategoryController;
 use Inertia\Inertia;
+use App\Http\Controllers\TezaursController;
+
+Route::get('/tezaurs/lookup', [TezaursController::class, 'lookup']);
+
 
 Route::get('/', fn() => Inertia::render('HomeView'))->name('home');
 Route::get('/newest', fn() => Inertia::render('NewestView'))->name('newest');

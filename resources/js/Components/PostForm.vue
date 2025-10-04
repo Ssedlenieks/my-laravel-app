@@ -1,517 +1,574 @@
 <template>
-    <div class="post-form">
-        <div class="content-wrapper">
-            <div v-if="categories.length" class="filter-bar">
-                <div class="filter-left">
-                    <div class="filter-item">
-                        <div class="search-box">
-                            <input
-                                type="text"
-                                v-model="searchQuery"
-                                placeholder="Search posts..."
-                            />
-                            <button class="search-btn" @click="searchPosts">Meklēt</button>
-                        </div>
-                    </div>
-                </div>
-                <div class="filter-center">
-                    <div class="filter-item category-box" v-if="!hideCategories">
-                        <label>IZvēlēties kategorijas:</label>
-                        <div class="categories-checkboxes">
-                            <label
-                                v-for="c in categories"
-                                :key="c.id"
-                                class="checkbox-item"
-                            >
-                                <span class="category-label">{{ c.name }}</span>
-                                <input
-                                    type="checkbox"
-                                    :value="c.id"
-                                    v-model="selectedCategories"
-                                    @change="fetchPosts"
-                                    class="category-checkbox"
-                                />
-                            </label>
-                        </div>
-                        <p class="found-count">Atrasti {{ posts.length }} ieraksti</p>
-                    </div>
-                </div>
-                <div class="filter-right">
-                    <div class="filter-item sort-box">
-                        <label for="sortBy">Kārtot pēc:</label>
-                        <select v-model="sortBy" @change="fetchPosts">
-                            <option value="reactions">Reakcijas</option>
-                            <option value="date">Datums</option>
-                        </select>
-                    </div>
-                </div>
+  <div class="post-form">
+    <div class="content-wrapper">
+      <div v-if="categories.length" class="filter-bar">
+        <div class="filter-left">
+          <div class="filter-item">
+            <div class="search-box">
+              <input
+                type="text"
+                v-model="searchQuery"
+                placeholder="Search posts..."
+              />
+              <button class="search-btn" @click="searchPosts">Meklēt</button>
             </div>
+          </div>
+        </div>
+        <div class="filter-center">
+          <div class="filter-item category-box" v-if="!hideCategories">
+            <label>IZvēlēties kategorijas:</label>
+            <div class="categories-checkboxes">
+              <label
+                v-for="c in categories"
+                :key="c.id"
+                class="checkbox-item"
+              >
+                <span class="category-label">{{ c.name }}</span>
+                <input
+                  type="checkbox"
+                  :value="c.id"
+                  v-model="selectedCategories"
+                  @change="fetchPosts"
+                  class="category-checkbox"
+                />
+              </label>
+            </div>
+            <p class="found-count">Atrasti {{ posts.length }} ieraksti</p>
+          </div>
+        </div>
+        <div class="filter-right">
+          <div class="filter-item sort-box">
+            <label for="sortBy">Kārtot pēc:</label>
+            <select v-model="sortBy" @change="fetchPosts">
+              <option value="reactions">Reakcijas</option>
+              <option value="date">Datums</option>
+            </select>
+          </div>
+        </div>
+      </div>
 
-            <div class="post-container">
-                <div v-if="posts.length" class="post-row">
-                    <div
-                        v-for="post in posts"
-                        :key="post.id"
-                        class="post"
-                    >
-                        <h3 v-html="highlight(post.title)"></h3>
-                        <h4>{{ post.categories.map(c => c.name).join(', ') }}</h4>
-                        <img
-                            v-if="post.image_url"
-                            :src="post.image_url"
-                            class="post-uploaded-image"
-                        />
-                        <div class="user-name">
-                            <div class="author-info">
-                                <img
-                                    v-if="post.user?.profile_photo_url"
-                                    :src="post.user.profile_photo_url"
-                                    alt="Author photo"
-                                    class="profile-photo-post"
-                                />
-                                <p class="author-text">
-                                    <strong>{{ post.user?.username || 'Unknown' }}</strong>
-                                </p>
-                            </div>
-                            <p class="post-date">{{ post.created_date }}</p>
-                        </div>
-                        <p v-html="highlight(truncateContent(post.content))"></p>
-                        <div class="reaction-icons">
-                            <button @click="addReaction('like', post.id)">👍</button>
-                            <span>{{ post.reactionCounts?.like }}</span>
-                            <button @click="addReaction('dislike', post.id)">👎</button>
-                            <span>{{ post.reactionCounts?.dislike }}</span>
-                            <button @click="addReaction('heart', post.id)">❤️</button>
-                            <span>{{ post.reactionCounts?.heart }}</span>
-                        </div>
-                        <div class="post-buttons">
-                            <button
-                                v-if="(post.user && post.user.id === currentUserId) || (isAdmin && !post.user.is_admin)"
-                                @click="deletePost(post.id)"
-                                class="btn-delete"
-                            >
-                                Delete
-                            </button>
+      <div class="post-container">
+        <div v-if="posts.length" class="post-row">
+          <div
+            v-for="post in posts"
+            :key="post.id"
+            class="post"
+          >
+            <h3 v-html="highlight(post.title)"></h3>
+            <h4>{{ post.categories.map(c => c.name).join(', ') }}</h4>
+            <img
+              v-if="post.image_url"
+              :src="post.image_url"
+              class="post-uploaded-image"
+            />
+            <div class="user-name">
+              <div class="author-info">
+                <img
+                  v-if="post.user?.profile_photo_url"
+                  :src="post.user.profile_photo_url"
+                  alt="Author photo"
+                  class="profile-photo-post"
+                />
+                <p class="author-text">
+                  <strong>{{ post.user?.username || 'Unknown' }}</strong>
+                </p>
+              </div>
+              <p class="post-date">{{ post.created_date }}</p>
+            </div>
+            <p v-html="highlight(truncateContent(post.content))"></p>
+            <div class="reaction-icons">
+              <button @click="addReaction('like', post.id)">👍</button>
+              <span>{{ post.reactionCounts?.like }}</span>
+              <button @click="addReaction('dislike', post.id)">👎</button>
+              <span>{{ post.reactionCounts?.dislike }}</span>
+              <button @click="addReaction('heart', post.id)">❤️</button>
+              <span>{{ post.reactionCounts?.heart }}</span>
+            </div>
+            <div class="post-buttons">
+              <button
+                v-if="(post.user && post.user.id === currentUserId) || (isAdmin && !post.user.is_admin)"
+                @click="deletePost(post.id)"
+                class="btn-delete"
+              >
+                Delete
+              </button>
 
-                            <button
-                                v-if="(post.user && post.user.id === currentUserId) || (isAdmin && !post.user.is_admin)"
-                                @click="startEdit(post)"
-                                class="btn-edit"
-                            >
-                                Edit
-                            </button>
-                            <button
-                                class="open-post-btn"
-                                @click="openModal(post)"
-                            >
-                                Open Post
-                            </button>
-                        </div>
-                        <div v-if="post.id === selectedPost?.id">
-                            <div
-                                v-for="comment in selectedPost.comments"
-                                :key="comment.id"
-                                class="comment"
-                            >
-                                <p>
-                                    <strong>{{ comment.user.username }}:</strong>
-                                    {{ comment.content }}
-                                </p>
-                            </div>
-                            <div v-if="isLoggedIn">
+              <button
+                v-if="(post.user && post.user.id === currentUserId) || (isAdmin && !post.user.is_admin)"
+                @click="startEdit(post)"
+                class="btn-edit"
+              >
+                Edit
+              </button>
+              <button
+                class="open-post-btn"
+                @click="openModal(post)"
+              >
+                Open Post
+              </button>
+            </div>
+            <div v-if="post.id === selectedPost?.id">
+              <div
+                v-for="comment in selectedPost.comments"
+                :key="comment.id"
+                class="comment"
+              >
+                <p>
+                  <strong>{{ comment.user.username }}:</strong>
+                  {{ comment.content }}
+                </p>
+              </div>
+              <div v-if="isLoggedIn">
                 <textarea
-                    v-model="newCommentContent"
-                    placeholder="Pievienot komentāru..."
+                  v-model="newCommentContent"
+                  placeholder="Pievienot komentāru..."
                 ></textarea>
-                                <button @click="addComment(post.id)">Publicēt komentāru</button>
-                            </div>
-                            <p v-else>Pierakstieties lai rakstītu komentāru</p>
-                        </div>
-                    </div>
-                </div>
+                <button @click="addComment(post.id)">Publicēt komentāru</button>
+              </div>
+              <p v-else>Pierakstieties lai rakstītu komentāru</p>
             </div>
+          </div>
         </div>
+      </div>
 
-        <div v-if="isLoggedIn" class="create-post-wrapper">
-            <div class="create-post-container">
-                <h2 class="create-title">Rakstiet savas domas</h2>
-                <form @submit.prevent="submitPost" enctype="multipart/form-data">
-                    <div>
-                        <label>Ziņas nosaukums:</label>
-                        <input type="text" v-model="post.title" required />
-                    </div>
-
-                    <div class="category-box create-category-box">
-                        <label>Izvēlēties kategorijas:</label>
-                        <div class="categories-checkboxes create-categories-checkboxes">
-                            <label
-                                v-for="c in categories"
-                                :key="c.id"
-                                class="checkbox-item"
-                            >
-                                <input
-                                    type="checkbox"
-                                    :value="c.id"
-                                    v-model="post.category_ids"
-                                    class="category-checkbox"
-                                />
-                                <span class="category-label">{{ c.name }}</span>
-                            </label>
-                        </div>
-                    </div>
-
-                    <div>
-                        <label>Saturs:</label>
-                        <textarea v-model="post.content" required></textarea>
-                        <label>Foto:</label>
-                        <input
-                            type="file"
-                            accept="image/*"
-                            @change="handleImageUpload"
-                            ref="fileInput"
-                        />
-                        <button type="submit">Publicēt ziņu</button>
-                    </div>
-                </form>
-                <p v-if="message" class="success-message">{{ message }}</p>
+      <div v-if="isLoggedIn" class="create-post-wrapper">
+        <div class="create-post-container">
+          <h2 class="create-title">Rakstiet savas domas</h2>
+          <form @submit.prevent="submitPost" enctype="multipart/form-data">
+            <div>
+              <label>Ziņas nosaukums:</label>
+              <input type="text" v-model="post.title" required />
             </div>
-        </div>
 
-        <div v-if="isModalOpen" class="modal" @click="closeModal">
-            <div class="modal-content full-post-container" @click.stop>
-                <div class="post-full">
-                    <div class="post-full-header">
-                        <h2>{{ selectedPost.user.username }}'s Ziņas</h2>
-                        <button class="close-btn" @click="closeModal">×</button>
-                    </div>
-                    <h3>{{ selectedPost.title }}</h3>
-                    <div class="post-full-image-wrapper" v-if="selectedPost.image_url">
-                        <img :src="selectedPost.image_url" alt="Post Image" class="post-full-image" />
-                    </div>
-                    <p class="post-full-content" v-html="selectedPost.content"></p>
-                </div>
-                <div class="comments-sidebar">
-                    <h3>Komentāri</h3>
-                    <div v-if="selectedPost.comments?.length" class="comments-list">
-                        <div
-                            v-for="cm in selectedPost.comments"
-                            :key="cm.id"
-                            class="comment-item"
-                        >
-                            <div class="comment-header">
-                                <strong>{{ cm.user.username }}</strong>
-                                <span class="comment-date">{{ cm.created_date }}</span>
-                            </div>
-                            <div
-                                v-if="isLoggedIn && (
-                                    currentUserId === cm.user.id ||
-                                    (isAdmin && !cm.user.is_admin)
-                                )"
-                                class="comments-delete">
-                                <span @click="deleteComment(cm.id, selectedPost.id)" class="delete">x</span>
-                            </div>
-                            <p class="comment-content">{{ cm.content }}</p>
-                            <hr />
-                        </div>
-                    </div>
-                    <div v-else class="no-comments">
-                        <p>No comments yet</p>
-                    </div>
-                    <div class="add-comment" v-if="isLoggedIn">
-                    <textarea
-                        v-model="newCommentContent"
-                        placeholder="Pievienot komentāru"
-                    ></textarea>
-                        <button @click="addComment(selectedPost.id)">Publicēt</button>
-                    </div>
-                    <p v-else class="login-note">Pierakstieties lai pievienotu komentāru</p>
-                </div>
+            <div class="category-box create-category-box">
+              <label>Izvēlēties kategorijas:</label>
+              <div class="categories-checkboxes create-categories-checkboxes">
+                <label
+                  v-for="c in categories"
+                  :key="c.id"
+                  class="checkbox-item"
+                >
+                  <input
+                    type="checkbox"
+                    :value="c.id"
+                    v-model="post.category_ids"
+                    class="category-checkbox"
+                  />
+                  <span class="category-label">{{ c.name }}</span>
+                </label>
+              </div>
             </div>
-        </div>
 
-        <div v-if="editingPost" class="modal" @click="cancelEdit">
-            <div class="modal-content full-post-container" @click.stop>
-                <div class="edit-form-col">
-                    <h3>Edit Post</h3>
-                    <label>Post Title:</label>
-                    <input v-model="editingPost.title" placeholder="Title" />
-                    <label>Content:</label>
-                    <textarea v-model="editingPost.content" placeholder="Content"></textarea>
-                    <label>Select Categories:</label>
-                    <div class="categories-checkboxes">
-                        <label
-                            v-for="c in categories"
-                            :key="c.id"
-                            class="checkbox-item"
-                        >
-                            <span class="category-label">{{ c.name }}</span>
-                            <input
-                                type="checkbox"
-                                :value="c.id"
-                                v-model="editingPost.category_ids"
-                                class="category-checkbox"
-                            />
-                        </label>
-                    </div>
-                    <label>Mainīt :</label>
-                    <input type="file" accept="image/*" @change="handleImageUpload" />
-                    <div class="buttons-row">
-                        <button @click="updatePost">Saglabāt</button>
-                        <button @click="cancelEdit">Atcelt</button>
-                    </div>
-                </div>
-                <div class="edit-preview-col">
-                    <h3>Preview</h3>
-                    <h4>{{ editingPost.title }}</h4>
-                    <p>{{ editingPost.content }}</p>
-                    <img
-                        v-if="editingPost.imagePreviewUrl"
-                        :src="editingPost.imagePreviewUrl"
-                        alt="Preview"
-                        style="max-width:100%; margin-top:10px;"
-                    />
-                </div>
+            <div>
+              <label>Saturs:</label>
+              <textarea v-model="post.content" required></textarea>
+              <label>Foto:</label>
+              <input
+                type="file"
+                accept="image/*"
+                @change="handleImageUpload"
+                ref="fileInput"
+              />
+              <button type="submit">Publicēt ziņu</button>
             </div>
+          </form>
+          <p v-if="message" class="success-message">{{ message }}</p>
         </div>
+      </div>
+
+      <div v-if="isModalOpen" class="modal" @click="closeModal">
+        <div class="modal-content full-post-container" @click.stop>
+          <div class="post-full">
+            <div class="post-full-header">
+              <h2>{{ selectedPost.user.username }}'s Ziņas</h2>
+              <button class="close-btn" @click="closeModal">×</button>
+            </div>
+
+            <!-- Meaning Mode Toggle Button -->
+            <button @click="toggleMeaningMode" class="btn-meaning">
+              {{ meaningMode ? 'Disable Meaning Mode' : 'Enable Meaning Mode' }}
+            </button>
+
+            <!-- Meaning Popup -->
+            <div v-if="popupMeaning" class="meaning-popup">
+              <strong>{{ popupWord }}</strong>: {{ popupMeaning }}
+              <button @click="closeMeaningPopup" class="close-meaning-btn">✕</button>
+            </div>
+
+            <div v-if="selectedPost && !popupMeaning" class="post-full-content">
+              <template v-if="meaningMode">
+                <p>
+                  <span
+                    v-for="(word, idx) in selectedPost.content.split(' ')"
+                    :key="idx"
+                    class="clickable"
+                    @click="fetchMeaning(word)"
+                  >
+                    {{ word }}
+                  </span>&nbsp;
+                </p>
+              </template>
+              <template v-else>
+                <p v-html="selectedPost.content"></p>
+              </template>
+            </div>
+          </div>
+
+          <div class="comments-sidebar">
+            <h3>Komentāri</h3>
+            <div v-if="selectedPost.comments?.length" class="comments-list">
+              <div
+                v-for="cm in selectedPost.comments"
+                :key="cm.id"
+                class="comment-item"
+              >
+                <div class="comment-header">
+                  <strong>{{ cm.user.username }}</strong>
+                  <span class="comment-date">{{ cm.created_date }}</span>
+                </div>
+                <div
+                  v-if="isLoggedIn && (
+                    currentUserId === cm.user.id ||
+                    (isAdmin && !cm.user.is_admin)
+                  )"
+                  class="comments-delete"
+                >
+                  <span @click="deleteComment(cm.id, selectedPost.id)" class="delete">x</span>
+                </div>
+                <p class="comment-content">{{ cm.content }}</p>
+                <hr />
+              </div>
+            </div>
+            <div v-else class="no-comments">
+              <p>No comments yet</p>
+            </div>
+            <div class="add-comment" v-if="isLoggedIn">
+              <textarea
+                v-model="newCommentContent"
+                placeholder="Pievienot komentāru"
+              ></textarea>
+              <button @click="addComment(selectedPost.id)">Publicēt</button>
+            </div>
+            <p v-else class="login-note">Pierakstieties lai pievienotu komentāru</p>
+          </div>
+        </div>
+      </div>
+
+      <div v-if="editingPost" class="modal" @click="cancelEdit">
+        <div class="modal-content full-post-container" @click.stop>
+          <div class="edit-form-col">
+            <h3>Edit Post</h3>
+            <label>Post Title:</label>
+            <input v-model="editingPost.title" placeholder="Title" />
+            <label>Content:</label>
+            <textarea v-model="editingPost.content" placeholder="Content"></textarea>
+            <label>Select Categories:</label>
+            <div class="categories-checkboxes">
+              <label
+                v-for="c in categories"
+                :key="c.id"
+                class="checkbox-item"
+              >
+                <span class="category-label">{{ c.name }}</span>
+                <input
+                  type="checkbox"
+                  :value="c.id"
+                  v-model="editingPost.category_ids"
+                  class="category-checkbox"
+                />
+              </label>
+            </div>
+            <label>Mainīt :</label>
+            <input type="file" accept="image/*" @change="handleImageUpload" />
+            <div class="buttons-row">
+              <button @click="updatePost">Saglabāt</button>
+              <button @click="cancelEdit">Atcelt</button>
+            </div>
+          </div>
+          <div class="edit-preview-col">
+            <h3>Preview</h3>
+            <h4>{{ editingPost.title }}</h4>
+            <p>{{ editingPost.content }}</p>
+            <img
+              v-if="editingPost.imagePreviewUrl"
+              :src="editingPost.imagePreviewUrl"
+              alt="Preview"
+              style="max-width:100%; margin-top:10px;"
+            />
+          </div>
+        </div>
+      </div>
     </div>
+  </div>
 </template>
+
+
 
 <script>
 import axios from "axios";
 
 export default {
-    name: "PostForm",
-    props: {
-        hideCategories: Boolean,
-        filterCategoryName: {
-            type: String,
-            default: ""
-        }
-    },
-    data() {
-        return {
-            post: { title: "", content: "", category_ids: [] },
-            selectedCategories: [],
-            searchQuery: "",
-            sortBy: "",
-            message: "",
-            posts: [],
-            categories: [],
-            isLoggedIn: false,
-            isAdmin: false,
-            currentUserId: null,
-            isModalOpen: false,
-            selectedPost: null,
-            newCommentContent: "",
-            imageFile: null,
-            editingPost: null,
-            searchActive: false
-        };
-    },
-    methods: {
-        highlight(text) {
-            if (!this.searchActive || !this.searchQuery) return text;
-            const esc = this.searchQuery.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-            return text.replace(new RegExp(`(${esc})`, "gi"), "<mark>$1</mark>");
-        },
-        truncateContent(text) {
-            if (!text) return "";
-            if (text.length <= 100) return text;
-            let segment = text.slice(0, 100);
-            const lastSpace = segment.lastIndexOf(" ");
-            if (lastSpace > 0) segment = segment.slice(0, lastSpace);
-            return segment + "...";
-        },
-        handleImageUpload(e) {
-            this.imageFile = e.target.files[0];
-            if (this.editingPost && this.imageFile) {
-                const reader = new FileReader();
-                reader.onload = () => {
-                    this.$set(this.editingPost, "imagePreviewUrl", reader.result);
-                };
-                reader.readAsDataURL(this.imageFile);
-            }
-        },
-        async submitPost() {
-            const fd = new FormData();
-            fd.append("title", this.post.title);
-            fd.append("content", this.post.content);
-            this.post.category_ids.forEach(id => fd.append("category_ids[]", id));
-            if (this.imageFile) fd.append("image", this.imageFile);
-            const res = await axios.post("/posts", fd, {
-                headers: { "Content-Type": "multipart/form-data" }
-            });
-            this.message = res.data.message;
-            this.resetSearch();
-            await this.fetchPosts();
-            this.post.title = "";
-            this.post.content = "";
-            this.post.category_ids = [];
-            this.imageFile = null;
-            this.$refs.fileInput.value = "";
-        },
-        async fetchPosts() {
-            try {
-                let url = "/posts";
-                const params = [];
-                if (this.selectedCategories.length) {
-                    this.selectedCategories.forEach(id => params.push(`category_ids[]=${id}`));
-                }
-                if (this.sortBy === "date") params.push(`sort=date`);
-                if (params.length) url += "?" + params.join("&");
-                const response = await axios.get(url);
-                let fetched = response.data;
-                for (let post of fetched) {
-                    const reactionRes = await axios.get(`/posts/${post.id}/reactions`);
-                    post.reactionCounts = reactionRes.data || { like: 0, dislike: 0, heart: 0 };
-                }
-                if (this.sortBy === "reactions") {
-                    fetched.sort((a, b) => {
-                        const sum = p => (p.reactionCounts.like || 0) + (p.reactionCounts.dislike || 0) + (p.reactionCounts.heart || 0);
-                        return sum(b) - sum(a);
-                    });
-                }
-                if (this.searchActive && this.searchQuery.trim()) {
-                    const q = this.searchQuery.trim().toLowerCase();
-                    fetched = fetched.filter(p => p.title.toLowerCase().includes(q) || p.content.toLowerCase().includes(q));
-                }
-                this.posts = fetched;
-            } catch (e) {
-                console.error(e);
-            }
-        },
-        async checkLoginStatus() {
-            try {
-                const res = await axios.get("/user");
-                this.isLoggedIn = !!res.data;
-                if (this.isLoggedIn) {
-                    this.currentUserId = res.data.id;
-                    this.isAdmin = res.data.is_admin;
-                }
-            } catch {}
-        },
-        async deletePost(postId) {
-            try {
-                await axios.delete(`/posts/${postId}`);
-                this.resetSearch();
-                await this.fetchPosts();
-            } catch (e) {
-                console.error(e);
-            }
-        },
-        openModal(post) {
-            this.selectedPost = post;
-            this.isModalOpen = true;
-            this.fetchComments(post.id);
-        },
-        closeModal() {
-            this.isModalOpen = false;
-            this.selectedPost = null;
-        },
-        async fetchComments(postId) {
-            try {
-                const res = await axios.get(`/posts/${postId}/comments`);
-                this.selectedPost.comments = res.data;
-            } catch {}
-        },
-        async addComment(postId) {
-            if (!this.newCommentContent) return;
-            try {
-                await axios.post(`/posts/${postId}/comments`, { content: this.newCommentContent });
-                this.newCommentContent = "";
-                this.fetchComments(postId);
-            } catch {}
-        },
-        async deleteComment(commentId, postId) {
-            try {
-                await axios.delete(`/comments/${commentId}`);
-                await this.fetchComments(postId);
-            } catch (e) {
-                console.error("Failed to delete comment:", e);
-                alert("Error deleting comment.");
-            }
-        },
-        async addReaction(type, postId) {
-            if (!this.isLoggedIn) {
-                alert("Log in to add reaction");
-                return;
-            }
-            try {
-                await axios.post(`/posts/${postId}/reactions`, { type });
-                this.resetSearch();
-                await this.fetchPosts();
-            } catch (e) {
-                console.error(e);
-            }
-        },
-        async fetchCategories() {
-            try {
-                const res = await axios.get("/categories");
-                this.categories = res.data;
-            } catch {}
-        },
-        startEdit(post) {
-            this.editingPost = {
-                id: post.id,
-                title: post.title,
-                content: post.content,
-                category_ids: post.categories.map(c => c.id),
-                imagePreviewUrl: post.image_url || null
-            };
-            this.imageFile = null;
-        },
-        cancelEdit() {
-            this.editingPost = null;
-            this.imageFile = null;
-        },
-        async updatePost() {
-            try {
-                const fd = new FormData();
-                fd.append("title", this.editingPost.title);
-                fd.append("content", this.editingPost.content);
-                this.editingPost.category_ids.forEach(id => fd.append("category_ids[]", id));
-                if (this.imageFile) fd.append("image", this.imageFile);
-                // override method for multipart PUT
-                fd.append("_method", "PUT");
-
-                await axios.post(
-                    `/posts/${this.editingPost.id}`,
-                    fd,
-                    { headers: { "Content-Type": "multipart/form-data" } }
-                );
-
-                this.cancelEdit();
-                this.resetSearch();
-                await this.fetchPosts();
-            } catch (e) {
-                console.error("Update failed:", e.response || e);
-                alert("Sorry, something went wrong while saving your changes.");
-            }
-        },
-        searchPosts() {
-            this.searchActive = true;
-            this.fetchPosts();
-        },
-        resetSearch() {
-            this.searchActive = false;
-        }
-    },
-    async mounted() {
-        await this.checkLoginStatus();
-        await this.fetchCategories();
-
-        if (this.filterCategoryName) {
-            const name = this.filterCategoryName.toLowerCase();
-            const match = this.categories.find(c => c.name.toLowerCase() === name);
-            if (match) {
-                this.selectedCategories = [match.id];
-            }
-        }
-
-        await this.fetchPosts();
+  name: "PostForm",
+  props: {
+    hideCategories: Boolean,
+    filterCategoryName: {
+      type: String,
+      default: ""
     }
+  },
+  data() {
+    return {
+      post: { title: "", content: "", category_ids: [] },
+      selectedCategories: [],
+      searchQuery: "",
+      sortBy: "",
+      message: "",
+      posts: [],
+      categories: [],
+      isLoggedIn: false,
+      isAdmin: false,
+      currentUserId: null,
+      isModalOpen: false,
+      selectedPost: null,
+      newCommentContent: "",
+      imageFile: null,
+      editingPost: null,
+      searchActive: false,
+
+      // Tezaurs meaning mode data
+      meaningMode: false,
+      popupWord: "",
+      popupMeaning: "",
+    };
+  },
+  methods: {
+    toggleMeaningMode() {
+      this.meaningMode = !this.meaningMode;
+      this.popupWord = "";
+      this.popupMeaning = "";
+    },
+    async fetchMeaning(word) {
+      this.popupWord = word;
+      this.popupMeaning = "Meklēšana..."; // Searching
+      try {
+        const res = await axios.get(`/api/tezaurs/lookup?word=${encodeURIComponent(word)}`);
+        if (res.data && res.data.length > 0) {
+          this.popupMeaning = res.data[0].definition || "Nav definīcijas.";
+        } else {
+          this.popupMeaning = "Nav atrasts skaidrojums.";
+        }
+      } catch (error) {
+        this.popupMeaning = "Kļūda meklējot definīciju.";
+        console.error(error);
+      }
+    },
+    closeMeaningPopup() {
+      this.popupWord = "";
+      this.popupMeaning = "";
+    },
+
+    highlight(text) {
+      if (!this.searchActive || !this.searchQuery) return text;
+      const esc = this.searchQuery.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      return text.replace(new RegExp(`(${esc})`, "gi"), "<mark>$1</mark>");
+    },
+    truncateContent(text) {
+      if (!text) return "";
+      if (text.length <= 100) return text;
+      let segment = text.slice(0, 100);
+      const lastSpace = segment.lastIndexOf(" ");
+      if (lastSpace > 0) segment = segment.slice(0, lastSpace);
+      return segment + "...";
+    },
+    handleImageUpload(e) {
+      this.imageFile = e.target.files[0];
+      if (this.editingPost && this.imageFile) {
+        const reader = new FileReader();
+        reader.onload = () => {
+          this.$set(this.editingPost, "imagePreviewUrl", reader.result);
+        };
+        reader.readAsDataURL(this.imageFile);
+      }
+    },
+    async submitPost() {
+      const fd = new FormData();
+      fd.append("title", this.post.title);
+      fd.append("content", this.post.content);
+      this.post.category_ids.forEach(id => fd.append("category_ids[]", id));
+      if (this.imageFile) fd.append("image", this.imageFile);
+      const res = await axios.post("/posts", fd, {
+        headers: { "Content-Type": "multipart/form-data" }
+      });
+      this.message = res.data.message;
+      this.resetSearch();
+      await this.fetchPosts();
+      this.post.title = "";
+      this.post.content = "";
+      this.post.category_ids = [];
+      this.imageFile = null;
+      this.$refs.fileInput.value = "";
+    },
+    async fetchPosts() {
+      try {
+        let url = "/posts";
+        const params = [];
+        if (this.selectedCategories.length) {
+          this.selectedCategories.forEach(id => params.push(`category_ids[]=${id}`));
+        }
+        if (this.sortBy === "date") params.push(`sort=date`);
+        if (params.length) url += "?" + params.join("&");
+        const response = await axios.get(url);
+        let fetched = response.data;
+        for (let post of fetched) {
+          const reactionRes = await axios.get(`/posts/${post.id}/reactions`);
+          post.reactionCounts = reactionRes.data || { like: 0, dislike: 0, heart: 0 };
+        }
+        if (this.sortBy === "reactions") {
+          fetched.sort((a, b) => {
+            const sum = p => (p.reactionCounts.like || 0) + (p.reactionCounts.dislike || 0) + (p.reactionCounts.heart || 0);
+            return sum(b) - sum(a);
+          });
+        }
+        if (this.searchActive && this.searchQuery.trim()) {
+          const q = this.searchQuery.trim().toLowerCase();
+          fetched = fetched.filter(p => p.title.toLowerCase().includes(q) || p.content.toLowerCase().includes(q));
+        }
+        this.posts = fetched;
+      } catch (e) {
+        console.error(e);
+      }
+    },
+    async checkLoginStatus() {
+      try {
+        const res = await axios.get("/user");
+        this.isLoggedIn = !!res.data;
+        if (this.isLoggedIn) {
+          this.currentUserId = res.data.id;
+          this.isAdmin = res.data.is_admin;
+        }
+      } catch {}
+    },
+    async deletePost(postId) {
+      try {
+        await axios.delete(`/posts/${postId}`);
+        this.resetSearch();
+        await this.fetchPosts();
+      } catch (e) {
+        console.error(e);
+      }
+    },
+    openModal(post) {
+      this.selectedPost = post;
+      this.isModalOpen = true;
+      this.fetchComments(post.id);
+    },
+    closeModal() {
+      this.isModalOpen = false;
+      this.selectedPost = null;
+      this.meaningMode = false;
+      this.popupWord = "";
+      this.popupMeaning = "";
+    },
+    async fetchComments(postId) {
+      try {
+        const res = await axios.get(`/posts/${postId}/comments`);
+        this.selectedPost.comments = res.data;
+      } catch {}
+    },
+    async addComment(postId) {
+      if (!this.newCommentContent) return;
+      try {
+        await axios.post(`/posts/${postId}/comments`, { content: this.newCommentContent });
+        this.newCommentContent = "";
+        this.fetchComments(postId);
+      } catch {}
+    },
+    async deleteComment(commentId, postId) {
+      try {
+        await axios.delete(`/comments/${commentId}`);
+        await this.fetchComments(postId);
+      } catch (e) {
+        console.error("Failed to delete comment:", e);
+        alert("Error deleting comment.");
+      }
+    },
+    async addReaction(type, postId) {
+      if (!this.isLoggedIn) {
+        alert("Log in to add reaction");
+        return;
+      }
+      try {
+        await axios.post(`/posts/${postId}/reactions`, { type });
+        this.resetSearch();
+        await this.fetchPosts();
+      } catch (e) {
+        console.error(e);
+      }
+    },
+    async fetchCategories() {
+      try {
+        const res = await axios.get("/categories");
+        this.categories = res.data;
+      } catch {}
+    },
+    startEdit(post) {
+      this.editingPost = {
+        id: post.id,
+        title: post.title,
+        content: post.content,
+        category_ids: post.categories.map(c => c.id),
+        imagePreviewUrl: post.image_url || null
+      };
+      this.imageFile = null;
+    },
+    cancelEdit() {
+      this.editingPost = null;
+      this.imageFile = null;
+    },
+    async updatePost() {
+      try {
+        const fd = new FormData();
+        fd.append("title", this.editingPost.title);
+        fd.append("content", this.editingPost.content);
+        this.editingPost.category_ids.forEach(id => fd.append("category_ids[]", id));
+        if (this.imageFile) fd.append("image", this.imageFile);
+        fd.append("_method", "PUT");
+        await axios.post(
+          `/posts/${this.editingPost.id}`,
+          fd,
+          { headers: { "Content-Type": "multipart/form-data" } }
+        );
+        this.cancelEdit();
+        this.resetSearch();
+        await this.fetchPosts();
+      } catch (e) {
+        console.error("Update failed:", e.response || e);
+        alert("Sorry, something went wrong while saving your changes.");
+      }
+    },
+    searchPosts() {
+      this.searchActive = true;
+      this.fetchPosts();
+    },
+    resetSearch() {
+      this.searchActive = false;
+    }
+  },
+  async mounted() {
+    await this.checkLoginStatus();
+    await this.fetchCategories();
+    if (this.filterCategoryName) {
+      const name = this.filterCategoryName.toLowerCase();
+      const match = this.categories.find(c => c.name.toLowerCase() === name);
+      if (match) {
+        this.selectedCategories = [match.id];
+      }
+    }
+    await this.fetchPosts();
+  }
 };
 </script>
+
 
 <style scoped>
 .content-wrapper {
@@ -1144,6 +1201,53 @@ export default {
 
 .delete:hover {
     color: grey
+}
+.btn-meaning {
+  margin: 10px 0;
+  padding: 6px 14px;
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.btn-meaning:hover {
+  background-color: #1e40af;
+}
+
+.clickable {
+  cursor: pointer;
+  color: #2563eb;
+  text-decoration: underline;
+}
+
+.meaning-popup {
+  background-color: #f3f6f9;
+  border: 1px solid #2563eb;
+  padding: 12px;
+  border-radius: 8px;
+  margin: 12px 0;
+  max-width: 460px;
+  position: relative;
+}
+
+.close-meaning-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: transparent;
+  border: none;
+  font-size: 18px;
+  font-weight: 700;
+  color: #2563eb;
+  cursor: pointer;
+}
+
+/* Ensure text wraps nicely in post content */
+.post-content, .post-content p {
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 </style>
