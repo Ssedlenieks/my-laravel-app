@@ -10,9 +10,14 @@ use App\Http\Controllers\CommentController;
 use App\Http\Controllers\ReactionController;
 use App\Http\Controllers\CategoryController;
 use Inertia\Inertia;
-use App\Http\Controllers\TezaursController;
+use App\Http\Controllers\LingvanexController;
 
-Route::get('/tezaurs/lookup', [TezaursController::class, 'lookup']);
+Route::get('/lingvanex/lookup', [LingvanexController::class, 'lookupWord']);
+Route::get('/lingvanex/test', function() {
+    return response()->json(['message' => 'Test route works!']);
+});
+Route::get('/lingvanex/translate', [LingvanexController::class, 'translate']);
+Route::get('/lingvanex/languages', [LingvanexController::class, 'getLanguages']);
 
 
 Route::get('/', fn() => Inertia::render('HomeView'))->name('home');

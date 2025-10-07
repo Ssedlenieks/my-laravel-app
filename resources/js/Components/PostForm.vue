@@ -1,3 +1,4 @@
+```html
 <template>
   <div class="post-form">
     <div class="content-wrapper">
@@ -47,6 +48,7 @@
         </div>
       </div>
 
+
       <div class="post-container">
         <div v-if="posts.length" class="post-row">
           <div
@@ -75,7 +77,14 @@
               </div>
               <p class="post-date">{{ post.created_date }}</p>
             </div>
-            <p v-html="highlight(truncateContent(post.content))"></p>
+            <!-- Post content -->
+            <div class="post-content-container">
+              <div>
+                <p v-html="highlight(truncateContent(post.content))"></p>
+              </div>
+            </div>
+
+
             <div class="reaction-icons">
               <button @click="addReaction('like', post.id)">👍</button>
               <span>{{ post.reactionCounts?.like }}</span>
@@ -92,6 +101,7 @@
               >
                 Delete
               </button>
+
 
               <button
                 v-if="(post.user && post.user.id === currentUserId) || (isAdmin && !post.user.is_admin)"
@@ -131,6 +141,7 @@
         </div>
       </div>
 
+
       <div v-if="isLoggedIn" class="create-post-wrapper">
         <div class="create-post-container">
           <h2 class="create-title">Rakstiet savas domas</h2>
@@ -139,6 +150,7 @@
               <label>Ziņas nosaukums:</label>
               <input type="text" v-model="post.title" required />
             </div>
+
 
             <div class="category-box create-category-box">
               <label>Izvēlēties kategorijas:</label>
@@ -159,6 +171,7 @@
               </div>
             </div>
 
+
             <div>
               <label>Saturs:</label>
               <textarea v-model="post.content" required></textarea>
@@ -176,36 +189,39 @@
         </div>
       </div>
 
-      <div v-if="isModalOpen" class="modal" @click="closeModal">
+
+      <div v-if="isModalOpen" class="modal" @click="closeMainModal">
         <div class="modal-content full-post-container" @click.stop>
           <div class="post-full">
             <div class="post-full-header">
               <h2>{{ selectedPost.user.username }}'s Ziņas</h2>
-              <button class="close-btn" @click="closeModal">×</button>
+              <button class="close-btn" @click="closeMainModal">×</button>
             </div>
 
-            <!-- Meaning Mode Toggle Button -->
+
+            <!-- Word Dictionary Lookup Toggle Button in Latvian -->
             <button @click="toggleMeaningMode" class="btn-meaning">
-              {{ meaningMode ? 'Disable Meaning Mode' : 'Enable Meaning Mode' }}
+              {{ meaningMode ? 'Izslēgt vārdnīcu' : 'Ieslēgt vārdnīcu' }}
             </button>
+
 
             <!-- Meaning Popup -->
             <div v-if="popupMeaning" class="meaning-popup">
               <strong>{{ popupWord }}</strong>: {{ popupMeaning }}
-              <button @click="closeMeaningPopup" class="close-meaning-btn">✕</button>
+              <button @click="closeMeaningPopup" class="close-meaning-btn" aria-label="Aizvērt skaidrojumu">✕</button>
             </div>
 
+
+            <!-- FIXED: Post content with proper spacing in meaning mode -->
             <div v-if="selectedPost && !popupMeaning" class="post-full-content">
               <template v-if="meaningMode">
                 <p>
-                  <span
-                    v-for="(word, idx) in selectedPost.content.split(' ')"
-                    :key="idx"
-                    class="clickable"
-                    @click="fetchMeaning(word)"
-                  >
-                    {{ word }}
-                  </span>&nbsp;
+                  <template v-for="(word, idx) in selectedPost.content.split(' ')" :key="idx">
+                    <span
+                      class="clickable"
+                      @click="fetchMeaning(word)"
+                    >{{ word }}</span><span v-if="idx < selectedPost.content.split(' ').length - 1"> </span>
+                  </template>
                 </p>
               </template>
               <template v-else>
@@ -213,6 +229,7 @@
               </template>
             </div>
           </div>
+
 
           <div class="comments-sidebar">
             <h3>Komentāri</h3>
@@ -253,6 +270,7 @@
           </div>
         </div>
       </div>
+
 
       <div v-if="editingPost" class="modal" @click="cancelEdit">
         <div class="modal-content full-post-container" @click.stop>
@@ -303,9 +321,9 @@
 </template>
 
 
-
 <script>
 import axios from "axios";
+
 
 export default {
   name: "PostForm",
@@ -335,10 +353,12 @@ export default {
       editingPost: null,
       searchActive: false,
 
+
       // Tezaurs meaning mode data
       meaningMode: false,
       popupWord: "",
       popupMeaning: "",
+      currentLookupPostId: null, // Track which post is showing the meaning popup
     };
   },
   methods: {
@@ -348,24 +368,30 @@ export default {
       this.popupMeaning = "";
     },
     async fetchMeaning(word) {
-      this.popupWord = word;
-      this.popupMeaning = "Meklēšana..."; // Searching
+      // Clean the word more thoroughly to match backend cleaning
+      let clean = word.replace(/[.,!?;:\"()]/g, '');
+      clean = clean.replace(/[""„''']/g, '');
+      clean = clean.trim();
+      this.popupWord = clean;
+      this.popupMeaning = 'Meklē definīciju…';
       try {
-        const res = await axios.get(`/api/tezaurs/lookup?word=${encodeURIComponent(word)}`);
-        if (res.data && res.data.length > 0) {
-          this.popupMeaning = res.data[0].definition || "Nav definīcijas.";
-        } else {
-          this.popupMeaning = "Nav atrasts skaidrojums.";
-        }
-      } catch (error) {
-        this.popupMeaning = "Kļūda meklējot definīciju.";
-        console.error(error);
+        const res = await axios.get(
+          `/lingvanex/lookup?word=${encodeURIComponent(clean)}`
+        );
+        this.popupMeaning = res.data.definition || 'Definīcija nav atrasta.';
+      } catch (e) {
+        this.popupMeaning = 'Kļūda meklējot definīciju.';
+        console.error(e);
       }
     },
     closeMeaningPopup() {
       this.popupWord = "";
       this.popupMeaning = "";
+      this.currentLookupPostId = null;
     },
+
+
+
 
     highlight(text) {
       if (!this.searchActive || !this.searchQuery) return text;
@@ -462,7 +488,7 @@ export default {
       this.isModalOpen = true;
       this.fetchComments(post.id);
     },
-    closeModal() {
+    closeMainModal() {
       this.isModalOpen = false;
       this.selectedPost = null;
       this.meaningMode = false;
@@ -578,6 +604,7 @@ export default {
     box-sizing: border-box;
 }
 
+
 .filter-bar {
     display: flex;
     align-items: flex-start;
@@ -615,6 +642,7 @@ export default {
     color 0.3s ease;
 }
 
+
 .search-box input {
     padding: 8px;
     border: none;
@@ -645,6 +673,7 @@ export default {
 .search-btn:hover {
     filter: brightness(1.1);
 }
+
 
 .category-box {
     display: flex;
@@ -686,6 +715,7 @@ export default {
     color: var(--post-text);
 }
 
+
 .sort-box {
     display: flex;
     flex-direction: column;
@@ -714,6 +744,7 @@ export default {
     border-bottom-color: var(--input-border);
 }
 
+
 .post-container {
     max-width: 100%;
     margin: 0 auto;
@@ -735,6 +766,7 @@ export default {
         grid-template-columns: 1fr;
     }
 }
+
 
 .post {
     padding: 16px;
@@ -803,6 +835,7 @@ export default {
     color: var(--post-text);
 }
 
+
 .reaction-icons {
     display: flex;
     gap: 8px;
@@ -859,6 +892,7 @@ export default {
     background-color: #555;
 }
 
+
 .modal {
     position: fixed;
     top: 0;
@@ -874,14 +908,14 @@ export default {
 .modal-content.full-post-container {
     background-color: var(--post-bg);
     color: var(--post-text);
-    width: 100vw;
-    height: 100vh;
+    max-width: 90%;
+    max-height: 90%;
+    width: auto;
+    height: auto;
     display: flex;
     flex-direction: row;
+    border-radius: 8px;
     overflow: hidden;
-    position: relative;
-    border-radius: 0;
-    padding: 0;
     box-sizing: border-box;
 }
 .post-full {
@@ -932,6 +966,7 @@ export default {
     margin-top: 12px;
     color: var(--post-text);
 }
+
 
 .comments-sidebar {
     flex: 1;
@@ -1022,6 +1057,7 @@ export default {
     text-align: center;
 }
 
+
 .create-post-wrapper {
     margin-top: 40px;
     margin-bottom: 40px;
@@ -1079,6 +1115,7 @@ export default {
     margin-top: 10px;
 }
 
+
 .create-category-box {
     background: transparent !important;
     box-shadow: none !important;
@@ -1118,6 +1155,7 @@ export default {
     margin-left: 0;
     white-space: nowrap;
 }
+
 
 .edit-form-col {
     flex: 1;
@@ -1186,11 +1224,13 @@ export default {
     font-family: "Aileron";
 }
 
+
 .comments-delete {
     text-align: right;
     margin-top: -10px;
     margin-bottom: 10px;
 }
+
 
 .delete {
     cursor: pointer;
@@ -1199,55 +1239,109 @@ export default {
     transition: color 0.2s ease;
 }
 
+
 .delete:hover {
     color: grey
 }
+
+
+/* Dictionary functionality styles - enhanced design */
 .btn-meaning {
-  margin: 10px 0;
-  padding: 6px 14px;
+  margin: 12px 0;
+  padding: 8px 16px;
   background-color: #2563eb;
   color: white;
   border: none;
   border-radius: 6px;
   font-weight: 600;
   cursor: pointer;
+  transition: background-color 0.2s ease;
 }
 .btn-meaning:hover {
   background-color: #1e40af;
 }
 
+
 .clickable {
   cursor: pointer;
   color: #2563eb;
   text-decoration: underline;
+  transition: all 0.2s ease;
+}
+.clickable:hover {
+  background-color: rgba(37, 99, 235, 0.1);
+  border-radius: 2px;
 }
 
+
+/* Enhanced meaning popup with beautiful design */
 .meaning-popup {
-  background-color: #f3f6f9;
-  border: 1px solid #2563eb;
-  padding: 12px;
+  background-color: #ffffff;
+  border: 1px solid #cbd5e1;
+  padding: 12px 16px;
   border-radius: 8px;
   margin: 12px 0;
-  max-width: 460px;
   position: relative;
+  display: block;
+  width: calc(100% - 32px);
+  max-width: 480px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  font-family: "Aileron", sans-serif;
+  line-height: 1.5;
+  color: #334155;
+  transition: transform 0.2s ease, opacity 0.2s ease;
 }
 
+/* Tighter heading style inside popup */
+.meaning-popup strong {
+  display: block;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1e40af;
+  margin-bottom: 4px;
+}
+
+/* Close button restyled */
 .close-meaning-btn {
   position: absolute;
   top: 8px;
   right: 8px;
-  background: transparent;
+  background: none;
   border: none;
-  font-size: 18px;
-  font-weight: 700;
-  color: #2563eb;
+  color: #64748b;
+  font-size: 16px;
   cursor: pointer;
+  padding: 4px;
+  line-height: 1;
+  border-radius: 4px;
+}
+.close-meaning-btn:hover {
+  background-color: rgba(100, 116, 139, 0.1);
 }
 
-/* Ensure text wraps nicely in post content */
-.post-content, .post-content p {
-  white-space: pre-wrap;
-  word-break: break-word;
+/* Subtle fade-in */
+@keyframes popupFade {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.meaning-popup {
+  animation: popupFade 0.18s ease-out;
 }
 
+
+/* Responsive adjustments for mobile */
+@media (max-width: 600px) {
+  .modal-content.full-post-container {
+    flex-direction: column;
+    max-width: 100%;
+    max-height: 100%;
+    border-radius: 0;
+  }
+
+  .meaning-popup {
+    max-width: 90%;
+    font-size: 14px;
+  }
+}
 </style>
+
