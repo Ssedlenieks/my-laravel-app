@@ -1,7 +1,7 @@
 <template>
   <div class="home">
     <navbar />
-    <p class="welcome-text">Jaunākie jaunumi platformā Labaziņa!</p>
+    <p class="welcome-text">Jaunumi platformā Labaziņa!</p>
 
     <div class="news-grid">
       <div v-for="(image, index) in previewImages" :key="index" class="news-card">
