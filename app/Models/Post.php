@@ -39,9 +39,10 @@ class Post extends Model
 
     public function getImageUrlAttribute()
     {
-        return $this->image
-            ? Storage::url($this->image)
-            : null;
+        if ($this->image && file_exists(storage_path('app/public/' . $this->image))) {
+            return Storage::url($this->image);
+        }
+        return null;
     }
 
     public function getCreatedDateAttribute()
