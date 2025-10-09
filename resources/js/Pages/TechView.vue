@@ -1,8 +1,8 @@
 <template>
     <div class="tech">
         <navbar/>
-        <h1>Jaunākās tehnoloģijas</h1>
-        <post-form :hide-categories="true" filter-category-name="Runway" />
+    <h1>Tehnoloģijas</h1>
+    <post-form :hide-categories="true" filter-category-name="Tehnoloģijas" />
         <AppFooter/>
     </div>
 </template>

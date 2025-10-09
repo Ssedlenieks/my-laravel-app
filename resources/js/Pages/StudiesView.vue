@@ -1,8 +1,8 @@
 <template>
     <div class="studies">
         <navbar/>
-        <h1>Pētījumi</h1>
-        <post-form :hide-categories="true" filter-category-name="Runway" />
+    <h1>Pētījumi</h1>
+    <post-form :hide-categories="true" filter-category-name="Pētījumi" />
         <AppFooter/>
     </div>
 </template>

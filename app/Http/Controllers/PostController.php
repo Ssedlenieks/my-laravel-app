@@ -20,12 +20,10 @@ class PostController extends Controller
         $ids = $request->input('category_ids', []);
         $totalCategories = \App\Models\Category::count();
         if (is_array($ids) && count($ids) > 0 && count($ids) < $totalCategories) {
-            // Kategoriju filtrēšana
-            foreach ($ids as $catId) {
-                $query->whereHas('categories', fn($q) =>
-                $q->where('categories.id', $catId)
-                );
-            }
+            // Filter posts that belong to ANY of the selected categories (OR), not require all (AND)
+            $query->whereHas('categories', function ($q) use ($ids) {
+                $q->whereIn('categories.id', $ids);
+            });
         }
 
         if ($request->filled('search')) {

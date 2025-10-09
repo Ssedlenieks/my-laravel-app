@@ -26,9 +26,11 @@ Route::get('/lingvanex/languages', [LingvanexController::class, 'getLanguages'])
 
 
 Route::get('/', fn() => Inertia::render('HomeView'))->name('home');
-Route::get('/newest', fn() => Inertia::render('NewestView'))->name('newest');
 Route::get('/tech', fn() => Inertia::render('TechView'))->name('runway');
 Route::get('/sports', fn() => Inertia::render('SportsView'))->name('style');
+Route::get('/kultura', fn() => Inertia::render('KulturaView'))->name('kultura');
+Route::get('/ekonomika', fn() => Inertia::render('EkonomikaView'))->name('ekonomika');
+Route::get('/politika', fn() => Inertia::render('PolitikaView'))->name('politika');
 Route::get('/login', fn() => Inertia::render('LoginView'))->name('login');
 Route::get('/studies', fn() => Inertia::render('StudiesView'))->name('studies');
 Route::get('/profile', fn() => Inertia::render('ProfileView'))->name('profile');

@@ -385,6 +385,8 @@ export default {
     return {
       post: { title: "", content: "", category_ids: [] },
       selectedCategories: [],
+  lastFetchToken: 0,
+  isLoadingPosts: false,
       searchQuery: "",
       sortBy: "",
       message: "",
@@ -581,6 +583,11 @@ export default {
 
     async fetchPosts() {
       try {
+        // create a fetch token to avoid race conditions where slower requests
+        // override newer ones
+        const token = ++this.lastFetchToken;
+        this.isLoadingPosts = true;
+
         let url = "/posts";
         const params = [];
         if (this.selectedCategories.length) {
@@ -604,8 +611,14 @@ export default {
           const q = this.searchQuery.trim().toLowerCase();
           fetched = fetched.filter(p => p.title.toLowerCase().includes(q) || p.content.toLowerCase().includes(q));
         }
+        // If another fetch started after this one, drop this response
+        if (this.lastFetchToken !== token) {
+          return;
+        }
         this.posts = fetched;
+        this.isLoadingPosts = false;
       } catch (e) {
+        this.isLoadingPosts = false;
         console.error(e);
       }
     },

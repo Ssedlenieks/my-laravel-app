@@ -1,9 +1,9 @@
 <template>
-    <div class="sports">
-        <navbar />
-    <h1>Sporta ziņas</h1>
-    <post-form :hide-categories="true" filter-category-name="Sports" />
-        <AppFooter />
+    <div class="kultura">
+        <navbar/>
+    <h1>Kultūra</h1>
+        <post-form :hide-categories="true" filter-category-name="Kultūra" />
+        <AppFooter/>
     </div>
 </template>
 
@@ -12,13 +12,12 @@ import navbar from "@/Components/navbar.vue";
 import AppFooter from "@/Components/footer.vue";
 
 export default {
-    name: 'SportsView',
+    name: 'KulturaView',
     components: { navbar, AppFooter },
-}
+};
 </script>
 
 <style scoped>
-
 h1 {
     text-align: center;
     color: black;
@@ -29,4 +28,3 @@ h1 {
 }
 
 </style>
-

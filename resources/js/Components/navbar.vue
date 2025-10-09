@@ -5,10 +5,12 @@
         </div>
 
         <div class="center">
-            <a href="/newest" class="desktop-only">Jaunākās ziņas</a>
             <a href="/tech" class="desktop-only">Tehnoloģijas</a>
             <a href="/sports" class="desktop-only">Sports</a>
             <a href="/studies" class="desktop-only">Pētījumi</a>
+            <a href="/kultura" class="desktop-only">Kultūra</a>
+            <a href="/ekonomika" class="desktop-only">Ekonomika</a>
+            <a href="/politika" class="desktop-only">Politika</a>
         </div>
 
         <div class="right">
@@ -21,10 +23,12 @@
         </div>
 
         <div v-if="isMenuOpen" class="mobile-menu">
-            <a href="/newest">Jaunākās ziņas</a>
             <a href="/tech">Tehnoloģijas</a>
             <a href="/sports">Sports</a>
             <a href="/studies">Pētījumi</a>
+            <a href="/kultura">Kultūra</a>
+            <a href="/ekonomika">Ekonomika</a>
+            <a href="/politika">Politika</a>
         </div>
     </nav>
 </template>
