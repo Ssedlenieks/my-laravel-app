@@ -16,7 +16,7 @@
         </div>
         <div class="filter-center">
           <div class="filter-item category-box" v-if="!hideCategories">
-            <label>IZvēlēties kategorijas:</label>
+            <label>Izvēlēties kategorijas:</label>
             <div class="categories-checkboxes">
               <label
                 v-for="c in categories"
@@ -48,9 +48,7 @@
       </div>
 
       <div class="post-container">
-        <!-- Two column layout: posts on left, expanded post on right -->
         <div class="posts-layout">
-          <!-- Posts Grid Column -->
           <div class="posts-grid-column" :class="{ 'with-expanded': expandedPostId }">
             <div v-if="posts.length" class="post-row">
               <div
@@ -63,7 +61,6 @@
                   <h3 v-html="highlight(post.title)"></h3>
                   <h4>{{ post.categories.map(c => c.name).join(', ') }}</h4>
 
-                  <!-- Better image sizing -->
                   <div v-if="post.image_url" class="post-image-container">
                     <img
                       :src="post.image_url"
@@ -139,10 +136,8 @@
               </div>
 
               <div class="expanded-content">
-                <!-- Find the expanded post -->
                 <div v-for="post in posts" :key="post.id">
                   <div v-if="post.id === expandedPostId" class="expanded-post-content">
-                    <!-- Full content display -->
                     <div class="full-content-section">
                       <h3 class="expanded-post-title">{{ post.title }}</h3>
                       <div class="post-meta">
@@ -158,7 +153,6 @@
                         <span class="post-date">{{ post.created_date }}</span>
                       </div>
 
-                      <!-- Better image in expanded view -->
                       <div v-if="post.image_url" class="expanded-image-container">
                         <img
                           :src="post.image_url"
@@ -255,7 +249,6 @@
                         <p>No comments yet</p>
                       </div>
 
-                      <!-- Add comment form -->
                       <div class="add-comment" v-if="isLoggedIn">
                         <textarea
                           v-model="newCommentContent"
@@ -398,11 +391,7 @@ export default {
       imageFile: null,
       editingPost: null,
       searchActive: false,
-
-      // Expanded post state
       expandedPostId: null,
-
-      // Meaning mode
       meaningMode: false,
       selectedWord: "",
       wordMeaningData: "",
@@ -468,12 +457,9 @@ export default {
       }
     },
 
-    // Improved tokenization method that preserves spaces and punctuation
     tokenizeContent(text) {
       if (!text) return [];
 
-      // This regex splits the text into words and non-words (spaces, punctuation)
-      // It preserves all the original spacing and punctuation
       const tokens = [];
       const regex = /(\S+|\s+)/g;
       let match;
@@ -485,13 +471,10 @@ export default {
       return tokens;
     },
 
-    // Check if a token is a word (not just whitespace or punctuation)
     isWord(token) {
-      // A word contains at least one letter or number
       return /\w/.test(token) && token.trim().length > 0;
     },
 
-    // Meaning mode methods
     cleanWord(word) {
       let clean = word.replace(/[.,!?;:\"()]/g, '');
       clean = clean.replace(/[""„''']/g, '');
@@ -535,7 +518,6 @@ export default {
       this.meaningExpanded = !this.meaningExpanded;
     },
 
-    // Existing methods (keep all your existing logic)
     highlight(text) {
       if (!this.searchActive || !this.searchQuery) return text;
       const esc = this.searchQuery.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -583,8 +565,6 @@ export default {
 
     async fetchPosts() {
       try {
-        // create a fetch token to avoid race conditions where slower requests
-        // override newer ones
         const token = ++this.lastFetchToken;
         this.isLoadingPosts = true;
 
@@ -611,7 +591,6 @@ export default {
           const q = this.searchQuery.trim().toLowerCase();
           fetched = fetched.filter(p => p.title.toLowerCase().includes(q) || p.content.toLowerCase().includes(q));
         }
-        // If another fetch started after this one, drop this response
         if (this.lastFetchToken !== token) {
           return;
         }
@@ -802,7 +781,6 @@ export default {
   padding: 0;
 }
 
-/* Improved Post Grid */
 .post-container {
   max-width: 100%;
   margin: 0 auto;
@@ -833,7 +811,6 @@ export default {
   }
 }
 
-/* Improved Post Styling */
 .post {
   padding: 16px;
   background-color: var(--post-bg);
@@ -855,7 +832,6 @@ export default {
   box-shadow: 0 2px 8px rgba(37, 99, 235, 0.2);
 }
 
-/* Better Image Sizing */
 .post-image-container {
   margin: 8px 0;
   text-align: center;
@@ -923,7 +899,6 @@ export default {
   color: var(--post-text);
 }
 
-/* FIXED: Meaning Mode Text Formatting */
 .post-full-content {
   font-size: 15px;
   line-height: 1.6;
@@ -973,7 +948,6 @@ export default {
   white-space: normal;
 }
 
-/* Comments section styling */
 .comments-section {
   background-color: var(--input-bg);
   border-radius: 8px;
@@ -1017,7 +991,6 @@ export default {
   gap: 8px;
 }
 
-/* CORRECT PROFILE PHOTO SIZES */
 .profile-photo-post {
   width: 28px;
   height: 28px;
@@ -1130,7 +1103,6 @@ export default {
   border-radius: 6px;
 }
 
-/* RESTORED BUTTON COLORS */
 .post-buttons {
   display: flex;
   gap: 8px;
@@ -1197,7 +1169,6 @@ export default {
   color: var(--post-text);
 }
 
-/* Meaning mode improvements */
 .btn-meaning {
   background-color: transparent;
   border: 1px solid #2563eb;
@@ -1437,7 +1408,6 @@ export default {
   border-bottom-color: var(--input-border);
 }
 
-/* Create post and edit modal styles remain the same */
 .create-post-wrapper {
   margin-top: 40px;
   margin-bottom: 40px;
