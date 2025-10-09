@@ -34,8 +34,9 @@ class User extends Authenticatable
     ];
     public function getProfilePhotoUrlAttribute()
     {
-        return $this->profile_photo
-            ? asset('storage/' . $this->profile_photo)
-            : asset('images/default-avatar.png');
+        if ($this->profile_photo && file_exists(storage_path('app/public/' . $this->profile_photo))) {
+            return asset('storage/' . $this->profile_photo);
+        }
+        return asset('images/default-avatar.png');
     }
 }
