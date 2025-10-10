@@ -39,6 +39,8 @@ export default {
     font-family: "Aileron";
     color: var(--post-text);
     padding: 40px 20px 20px;
+    /* space above footer so it doesn't stick to the posts area */
+    margin-top: 60px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
     transition: background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
 }
@@ -120,6 +122,10 @@ body.dark .footer-section a:hover {
     }
     .footer-section {
         text-align: center;
+    }
+    /* Reduce the top margin on smaller screens to save vertical space */
+    .app-footer {
+        margin-top: 30px;
     }
 }
 </style>

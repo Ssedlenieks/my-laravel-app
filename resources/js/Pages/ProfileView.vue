@@ -270,7 +270,7 @@ async function deleteUser(id) {
 
 const logout = async () => {
     await axios.post('/logout');
-    router.visit('/login');
+    router.visit('/');
 };
 
 const goHome = () => router.visit('/');
