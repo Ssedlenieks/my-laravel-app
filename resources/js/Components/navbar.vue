@@ -3,7 +3,7 @@
         <div class="left">
             <h1 @click="goHome">Labas Ziņas</h1>
         </div>
-
+        <!-- Kategoriju izvēle -->
         <div class="center">
             <a href="/tech" class="desktop-only">Tehnoloģijas</a>
             <a href="/sports" class="desktop-only">Sports</a>
@@ -12,7 +12,7 @@
             <a href="/ekonomika" class="desktop-only">Ekonomika</a>
             <a href="/politika" class="desktop-only">Politika</a>
         </div>
-
+        <!-- Tumšā režīma pārslēgs un lietotāja profila poga -->
         <div class="right">
             <i :class="isDarkMode ? 'fas fa-sun' : 'fas fa-moon'" @click="toggleDarkMode"></i>
             <a @click.prevent="goToProfile">
@@ -21,7 +21,7 @@
             </a>
             <i class="fas fa-bars mobile-only" @click="toggleMenu"></i>
         </div>
-
+        <!-- Kategoriju izvēle responsivāi versijai -->
         <div v-if="isMenuOpen" class="mobile-menu">
             <a href="/tech">Tehnoloģijas</a>
             <a href="/sports">Sports</a>
@@ -90,7 +90,6 @@ nav {
     height: 100px;
     background-color: whitesmoke;
     box-shadow: lightblue 1px 1px 10px;
-    /*transition: background-color 0.3s ease, color 0.3s ease;*/
     font-family: "Aileron";
     position: relative;
 }

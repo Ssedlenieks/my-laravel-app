@@ -14,6 +14,7 @@
             </div>
           </div>
         </div>
+       <!--Kategoriju izvēlēs sadaļa-->
         <div class="filter-center">
           <div class="filter-item category-box" v-if="!hideCategories">
             <label>Izvēlēties kategorijas:</label>
@@ -36,6 +37,7 @@
             <p class="found-count">Atrasti {{ posts.length }} ieraksti</p>
           </div>
         </div>
+        <!--Publikāciju krtošana pēc reakcijām vai pēc datuma-->
         <div class="filter-right">
           <div class="filter-item sort-box">
             <label for="sortBy">Kārtot pēc:</label>
@@ -89,7 +91,7 @@
                       <p v-html="highlight(truncateContent(post.content))"></p>
                     </div>
                   </div>
-
+                <!--Reakciju pievienošanas sadaļa-->
                   <div class="reaction-icons">
                     <button @click="addReaction('like', post.id)">👍</button>
                     <span>{{ post.reactionCounts?.like }}</span>
@@ -127,7 +129,7 @@
             </div>
           </div>
 
-          <!-- Expanded Post Column -->
+          <!-- Pilnīgi atvērtas publikācijas sadaļa -->
           <div v-if="expandedPostId" class="expanded-post-column">
             <div class="expanded-post-card">
               <div class="expanded-header">
@@ -183,12 +185,12 @@
                         </template>
                       </div>
 
-                      <!-- Meaning mode toggle -->
+                      <!-- Vardnīcas sadaļas ieslēgšanas/izslēgšanas poga -->
                       <button @click="toggleMeaningMode" class="btn-meaning">
                         {{ meaningMode ? 'Izslēgt vārdnīcu' : 'Ieslēgt vārdnīcu' }}
                       </button>
 
-                      <!-- Inline meaning section -->
+                      <!-- Vardnīcas sadaļa, izvēlēta vārda skaidrojums -->
                       <div v-if="meaningMode && selectedWord" class="meaning-section">
                         <div class="meaning-header" @click="toggleMeaningExpanded">
                           <h4>📖 Vārda skaidrojums</h4>
@@ -208,7 +210,7 @@
                       </div>
                     </div>
 
-                    <!-- Comments section -->
+                    <!-- Komentāru sadaļa -->
                     <div class="comments-section">
                       <h4 class="section-title">Komentāri ({{ post.comments ? post.comments.length : 0 }})</h4>
 
@@ -267,7 +269,7 @@
         </div>
       </div>
 
-      <!-- Create Post Section -->
+      <!-- Publikāciju izveidošanas sadaļa (Pieejama tikai reģistrētiem lietotājiem) -->
       <div v-if="isLoggedIn" class="create-post-wrapper">
         <div class="create-post-container">
           <h2 class="create-title">Rakstiet savas domas</h2>
@@ -313,7 +315,7 @@
         </div>
       </div>
 
-      <!-- Edit Modal -->
+      <!-- Publikāciju rediģēšanas modālais logs -->
       <div v-if="editingPost" class="modal" @click="cancelEdit">
         <div class="modal-content full-post-container" @click.stop>
           <div class="edit-form-col">
@@ -401,7 +403,7 @@ export default {
     };
   },
   methods: {
-    // Toggle post expansion
+    // Pilnīgi atvērtās publikācijas pārslēgšana
     async togglePostExpand(postId) {
       if (this.expandedPostId === postId) {
         this.closeExpandedPost();
@@ -413,14 +415,14 @@ export default {
       }
     },
 
-    // Close expanded post
+    // Aizvert pilnīgi atvērtu publikāciju
     closeExpandedPost() {
       this.expandedPostId = null;
       this.meaningMode = false;
       this.selectedWord = "";
     },
 
-    // Fetch comments for a post
+    // Publikāciju saņēmšana 
     async fetchComments(postId) {
       try {
         const res = await axios.get(`/posts/${postId}/comments`);
@@ -433,7 +435,7 @@ export default {
       }
     },
 
-    // Add comment to expanded post
+    // Komentāru pievienošana 
     async addComment(postId) {
       if (!this.newCommentContent.trim()) return;
       try {
@@ -447,7 +449,7 @@ export default {
       }
     },
 
-    // Delete comment
+    // Komentāru dzēšana
     async deleteComment(commentId, postId) {
       try {
         await axios.delete(`/comments/${commentId}`);
@@ -601,7 +603,8 @@ export default {
         console.error(e);
       }
     },
-
+    
+    // Pārbauda lietotāja pieteikšanās statusu
     async checkLoginStatus() {
       try {
         const res = await axios.get("/user");
@@ -626,6 +629,7 @@ export default {
       }
     },
 
+    // Reakciju pievienošanas funkcija
     async addReaction(type, postId) {
       if (!this.isLoggedIn) {
         alert("Log in to add reaction");
@@ -710,7 +714,6 @@ export default {
 </script>
 
 <style scoped>
-/* New Layout System */
 .posts-layout {
   display: flex;
   gap: 20px;
@@ -866,7 +869,6 @@ export default {
   border-radius: 6px;
 }
 
-/* Expanded Post Content */
 .expanded-post-content {
   padding: 20px;
 }
@@ -1271,7 +1273,6 @@ export default {
   opacity: 1;
 }
 
-/* Filter bar and other styles remain the same */
 .filter-bar {
   display: flex;
   align-items: flex-start;

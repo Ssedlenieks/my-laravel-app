@@ -153,7 +153,6 @@ const handleSubmit = async () => {
 </script>
 <style scoped>
 .login-wrapper {
-    background-image: url('https://theplanetapp.com/wp-content/uploads/2022/08/fast-fashion-1-scaled-1-scaled.webp');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;

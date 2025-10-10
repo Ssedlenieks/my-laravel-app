@@ -13,7 +13,6 @@ use Inertia\Inertia;
 use App\Http\Controllers\LingvanexController;
 use App\Http\Controllers\ImageController;
 
-// Image serving routes with fallbacks
 Route::get('/storage/profile_photos/{filename}', [ImageController::class, 'serveProfilePhoto']);
 Route::get('/storage/posts/{filename}', [ImageController::class, 'servePostImage']);
 

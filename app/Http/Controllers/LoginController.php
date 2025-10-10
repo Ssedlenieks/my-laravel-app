@@ -37,25 +37,20 @@ class LoginController extends Controller
 
     public function logout(Request $request)
     {
-        // If the request has an authenticated user, revoke their tokens (Sanctum)
         $user = $request->user();
         if ($user) {
-            // Delete the current access token if present
             try {
                 if (method_exists($user, 'currentAccessToken') && $user->currentAccessToken()) {
                     $user->currentAccessToken()->delete();
                 }
             } catch (\Throwable $e) {
-                // ignore token deletion errors
             }
 
-            // Also delete all other tokens to fully revoke API access
             try {
                 if (method_exists($user, 'tokens')) {
                     $user->tokens()->delete();
                 }
             } catch (\Throwable $e) {
-                // ignore token deletion errors
             }
         }
 
