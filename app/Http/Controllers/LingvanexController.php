@@ -26,134 +26,17 @@ class LingvanexController extends Controller
         }
 
         try {
-            // Primary: Try Lingvanex translation approach (since you have a paid API key)
-            $lingvanexResult = $this->tryLingvanexTranslationApproach($word);
-
-            // If Lingvanex found a definition, return it
-            if ($lingvanexResult->getData()->definition !== "Vārda definīcija nav atrasta. Iespējams, tas ir īpašvārds, tehnisks termins vai nepareizi uzrakstīts vārds.") {
-                return $lingvanexResult;
-            }
-
-            // Fallback: Check our built-in dictionary
-            $result = $this->trySimpleLatvianDictionary($word);
-            return $result;
+            // Use Lingvanex translation approach (Latvian → English → definition)
+            return $this->tryLingvanexTranslationApproach($word);
 
         } catch (\Exception $e) {
             \Log::error('Dictionary Lookup Exception', ['message' => $e->getMessage()]);
-            return $this->trySimpleLatvianDictionary($word);
-        }
-    }
-
-    private function trySimpleLatvianDictionary($word)
-    {
-        // Extended Latvian word dictionary with common words
-        $commonWords = [
-            'mja' => '(lietvrds) Dzvojam ka',
-            'saule' => '(lietvrds) Zvaigzne, kas apgaismo Zemi',
-            'dens' => '(lietvrds) Dzidrs idrums',
-            'grmata' => '(lietvrds) Drukts vai rakstts darbs',
-            'skola' => '(lietvrds) Izgltbas iestde',
-            'darbs' => '(lietvrds) Darbba, nodarboans',
-            'laiks' => '(lietvrds) Ilgums, periods',
-            'cilvks' => '(lietvrds) Saprtga dzva btne',
-            'valsts' => '(lietvrds) Politiska vienba',
-            'pasaule' => '(lietvrds) Visa eksistjo realitte',
-            'mlestba' => '(lietvrds) Dzia pieerans un muma sajta',
-            'draugs' => '(lietvrds) Tuva, uzticama persona',
-            'imene' => '(lietvrds) Radinieku grupa',
-            'prieks' => '(lietvrds) Pozitva emocija, laimes sajta',
-            'bdas' => '(lietvrds) Skumjas, spes',
-            'bailes' => '(lietvrds) Baiu, izbu sajta',
-            'zias' => '(lietvrds) Informcija par notikumiem',
-            'valoda' => '(lietvrds) Sazias ldzeklis',
-            'vrds' => '(lietvrds) Runas vai rakstu vienba',
-            'ststs' => '(lietvrds) Izststts notikums',
-            'jautjums' => '(lietvrds) Vaicjums, problma',
-            'atbilde' => '(lietvrds) Reakcija uz jautjumu',
-            'dienas' => '(lietvrds) 24 stundu periods',
-            'nakts' => '(lietvrds) Tumais diennakts laiks',
-            'rts' => '(lietvrds) Dienas skums',
-            'vakars' => '(lietvrds) Dienas beigas',
-            'datums' => '(lietvrds) Konkrts laika moments',
-            'nkotne' => '(lietvrds) Nkamais laiks',
-            'pagtne' => '(lietvrds) Iepriekjais laiks',
-            'tagadne' => '(lietvrds) Pareizjais laiks',
-            'pilsta' => '(lietvrds) Lielks apdzvots punkts',
-            'ciems' => '(lietvrds) Mazs apdzvots punkts',
-            'drzs' => '(lietvrds) Audzanas vieta',
-            'parks' => '(lietvrds) Atptas zona ar kokiem',
-            'veikals' => '(lietvrds) Tirdzniecbas vieta',
-            'kafejnca' => '(lietvrds) stuves vieta',
-            'zinanas' => '(lietvrds) Iegta informcija',
-            'izgltba' => '(lietvrds) Mcbu process',
-            'kultra' => '(lietvrds) Sabiedrbas radts vrtbas',
-            'mksla' => '(lietvrds) Rado darbba',
-            'zintne' => '(lietvrds) Sistemtiska izpte',
-            'skolotjs' => '(lietvrds) Persona, kas mca',
-            'students' => '(lietvrds) Persona, kas mcs',
-            'aprbs' => '(lietvrds) Drbes, ko uzvelk uz ermea',
-            'krekls' => '(lietvrds) Augdaas aprbs',
-            'bikses' => '(lietvrds) Kju aprbs',
-            'kurpes' => '(lietvrds) Kju aizsargs',
-            'cimdi' => '(lietvrds) Roku aizsargs',
-            'cepure' => '(lietvrds) Galvas segs',
-            'diens' => '(lietvrds) Uztura vielas',
-            'maize' => '(lietvrds) Pamata uztura produkts',
-            'piens' => '(lietvrds) Balts dzriens no govs',
-            'gaa' => '(lietvrds) Dzvnieku muskui k prtika',
-            'drzei' => '(lietvrds) Augiem audzts prtikas vielas',
-            'augi' => '(lietvrds) Saldu produkti no kokiem',
-            'dators' => '(lietvrds) Elektroniska skaitoanas ierce',
-            'telefons' => '(lietvrds) Sazias ierce',
-            'internets' => '(lietvrds) Globls datortkls',
-            'televizors' => '(lietvrds) Attlu un skaas ierce',
-            'radio' => '(lietvrds) Skaas prraides ierce',
-            'koks' => '(lietvrds) Augsts augs ar stumbru',
-            'zle' => '(lietvrds) Zas zemes segs',
-            'zieds' => '(lietvrds) Krsaina auga daa',
-            'dzvnieks' => '(lietvrds) Dzva btne',
-            'putns' => '(lietvrds) Lidojos dzvnieks',
-            'zivs' => '(lietvrds) den dzvojos dzvnieks',
-            'darana' => '(lietvrds) Darbbas veikana',
-            'mcans' => '(lietvrds) Zinanu apguve',
-            'lasana' => '(lietvrds) Teksta uztvere',
-            'rakstana' => '(lietvrds) Teksta radana',
-            'skrjiena' => '(lietvrds) tra kustba',
-            'staigana' => '(lietvrds) Lna kustba',
-            'krsa' => '(lietvrds) Vizul paba',
-            'sarkans' => '(pabas vrds) Uguns krsa',
-            'zils' => '(pabas vrds) Debess krsa',
-            'za' => '(pabas vrds) Zles krsa',
-            'dzeltens' => '(pabas vrds) Saules krsa',
-            'balts' => '(pabas vrds) Sniega krsa',
-            'melns' => '(pabas vrds) Nakts krsa',
-            'galva' => '(lietvrds) Augj ermea daa',
-            'acs' => '(lietvrds) Redzes orgns',
-            'mute' => '(lietvrds) anas un runanas orgns',
-            'roka' => '(lietvrds) Augjs ekstremittes',
-            'kja' => '(lietvrds) Apakjs ekstremittes',
-            'sirds' => '(lietvrds) Asinsrites orgns',
-            'lietus' => '(lietvrds) dens nokrites no debesm',
-            'sniegs' => '(lietvrds) Baltas prslas no debesm',
-            'vj' => '(lietvrds) Gaisa kustba',
-            'mkoi' => '(lietvrds) dens tvaiku krjumi debess'
-        ];
-
-        $word = strtolower(trim($word));
-
-        if (isset($commonWords[$word])) {
             return response()->json([
                 'word' => $word,
-                'definition' => $commonWords[$word],
-                'partOfSpeech' => 'pamata'
+                'definition' => "Vārda definīcija nav atrasta. Iespējams, tas ir īpašvārds, tehnisks termins vai nepareizi uzrakstīts vārds.",
+                'partOfSpeech' => 'nezināms'
             ]);
         }
-
-        return response()->json([
-            'word' => $word,
-            'definition' => "Vārda definīcija nav atrasta. Iespējams, tas ir īpašvārds, tehnisks termins vai nepareizi uzrakstīts vārds.",
-            'partOfSpeech' => 'nezināms'
-        ]);
     }
 
     private function tryLingvanexTranslationApproach($word)
