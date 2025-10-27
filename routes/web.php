@@ -17,9 +17,6 @@ Route::get('/storage/profile_photos/{filename}', [ImageController::class, 'serve
 Route::get('/storage/posts/{filename}', [ImageController::class, 'servePostImage']);
 
 Route::get('/lingvanex/lookup', [LingvanexController::class, 'lookupWord']);
-Route::get('/lingvanex/test', function() {
-    return response()->json(['message' => 'Test route works!']);
-});
 Route::get('/lingvanex/translate', [LingvanexController::class, 'translate']);
 Route::get('/lingvanex/languages', [LingvanexController::class, 'getLanguages']);
 

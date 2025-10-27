@@ -39,7 +39,7 @@ export default {
     name: 'Navbar',
     data() {
         return {
-            isDarkMode: localStorage.getItem('isDarkMode') === 'true',
+            isDarkMode: false,
             isMenuOpen: false,
             user: null
         };
@@ -49,9 +49,10 @@ export default {
             this.$inertia.visit('/');
         },
         toggleDarkMode() {
-            this.isDarkMode = !this.isDarkMode;
-            localStorage.setItem('isDarkMode', this.isDarkMode);
-            document.body.classList.toggle('dark', this.isDarkMode);
+            if (window.darkModeManager) {
+                window.darkModeManager.toggle();
+                this.isDarkMode = window.darkModeManager.getCurrentMode();
+            }
         },
         toggleMenu() {
             this.isMenuOpen = !this.isMenuOpen;
@@ -73,8 +74,9 @@ export default {
         },
     },
     mounted() {
-        if (this.isDarkMode) {
-            document.body.classList.add('dark');
+        // Initialize dark mode state from the global manager
+        if (window.darkModeManager) {
+            this.isDarkMode = window.darkModeManager.getCurrentMode();
         }
         this.fetchUser();
     }
