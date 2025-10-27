@@ -1,21 +1,21 @@
 <template>
   <div class="home">
     <navbar />
-    <p class="welcome-text">Jaunumi platformā Labaziņa!</p>
+    <p class="welcome-text">Jaunumi platformā Labas Ziņas!</p>
 
     <div class="news-grid">
       <div v-for="(image, index) in previewImages" :key="index" class="news-card">
         <a :href="newsLinks[index]">
           <img :src="image" alt="News preview" class="news-img" />
           <div class="news-content">
-            <h3 class="headline">{{ designerNames[index] }}</h3>
-            <p class="summary">Catch up on the latest developments in this story. Click to read more.</p>
+            <h3 class="headline">{{ newsHeadlines[index] }}</h3>
+            <p class="summary">Uzziniet jaunākās ziņas par šo tēmu. Noklikšķiniet, lai lasītu vairāk.</p>
           </div>
         </a>
       </div>
     </div>
 
-    <post-form v-if="user" />
+    <post-form/>
 
     <AppFooter />
   </div>
@@ -35,16 +35,16 @@ const previewImages = [
   "https://cdn.databridgemarketresearch.com/media/2025/9/GlobalSystemofInsightMarket.webp"
 ];
 
-const designerNames = [
-  "Global Affairs Briefing",
-  "Science & Innovation",
-  "World Market Insights"
+const newsHeadlines = [
+  "Politikas apskats",
+  "Tehnoloģiju jaunumi",
+  "Ekonomikas apskats"
 ];
 
 const newsLinks = [
-    "/newest",
+    "/politika",
     "/tech",
-    "/studies"
+    "/ekonomika"
 ];
 </script>
 

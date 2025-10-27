@@ -40,7 +40,7 @@
           <div v-if="expandedPostId" class="expanded-post-column">
             <div class="expanded-post-card">
               <div class="expanded-header">
-                <h3>Post Details</h3>
+                <h3>Publikācijas priekšskatījums</h3>
                 <button class="close-expanded" @click="closeExpandedPost">×</button>
               </div>
 
@@ -120,7 +120,7 @@
             <div>
               <label>Saturs:</label>
               <textarea v-model="post.content" required></textarea>
-              <label>Foto:</label>
+              <label>Attēls:</label>
               <input type="file" accept="image/*" @change="handleImageUpload" ref="fileInput" />
               <button type="submit">Publicēt ziņu</button>
             </div>
@@ -133,12 +133,12 @@
       <div v-if="editingPost" class="modal" @click="cancelEdit">
         <div class="modal-content full-post-container" @click.stop>
           <div class="edit-form-col">
-            <h3>Edit Post</h3>
-            <label>Post Title:</label>
-            <input v-model="editingPost.title" placeholder="Title" />
-            <label>Content:</label>
-            <textarea v-model="editingPost.content" placeholder="Content"></textarea>
-            <label>Select Categories:</label>
+            <h3>Rediģēt ziņu</h3>
+            <label>Ziņas nosaukums:</label>
+            <input v-model="editingPost.title" placeholder="Nosaukums" />
+            <label>Saturs:</label>
+            <textarea v-model="editingPost.content" placeholder="Saturs"></textarea>
+            <label>Izvēlēties kategorijas:</label>
             <div class="categories-checkboxes">
               <label v-for="c in categories" :key="c.id" class="checkbox-item">
                 <span class="category-label">{{ c.name }}</span>
@@ -158,7 +158,7 @@
             </div>
           </div>
           <div class="edit-preview-col">
-            <h3>Preview</h3>
+            <h3>Priekšskatījums</h3>
             <h4>{{ editingPost.title }}</h4>
             <p>{{ editingPost.content }}</p>
             <img
@@ -413,6 +413,9 @@ export default {
     },
 
     async deletePost(postId) {
+      if (!confirm('Vai tiešām vēlaties dzēst šo publikāciju?')) {
+        return;
+      }
       try {
         await axios.delete(`/posts/${postId}`);
         this.resetSearch();

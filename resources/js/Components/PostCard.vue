@@ -48,7 +48,7 @@
           @click="$emit('delete-post', post.id)"
           class="btn-delete"
         >
-          Delete
+          Dzēst
         </button>
 
         <button
@@ -56,13 +56,13 @@
           @click="$emit('edit-post', post)"
           class="btn-edit"
         >
-          Edit
+          Rediģēt
         </button>
         <button
           class="open-post-btn"
           @click="$emit('expand-post', post.id)"
         >
-          {{ isActive ? 'Close' : 'Open Post' }}
+          {{ isActive ? 'Aizvērt' : 'Atvērt' }}
         </button>
       </div>
     </div>
