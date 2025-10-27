@@ -1,6 +1,6 @@
 <template>
     <div class="profile">
-        <h1>Profile</h1>
+        <h1>Jūsu profils</h1>
 
         <div class="avatar">
             <img :src="user.profile_photo_url" alt="Avatar" />
@@ -8,63 +8,63 @@
 
         <div class="profile-info">
             <div class="info-item">
-                <label>Username:</label>
+                <label>Lietotājvārds:</label>
                 <span>{{ user.username }}</span>
             </div>
             <div class="info-item">
-                <label>Email:</label>
+                <label>E-pasts:</label>
                 <span>{{ user.email }}</span>
             </div>
             <div class="info-item">
-                <label>Description:</label>
-                <span>{{ user.bio || 'Not added' }}</span>
+                <label>Apraksts:</label>
+                <span>{{ user.bio || 'Nav pievienots' }}</span>
             </div>
             <div class="info-item">
-                <label>Total Posts:</label>
+                <label>Visi ieraksti:</label>
                 <span>{{ postCount }}</span>
             </div>
             <div class="info-item">
-                <label>Total Likes:</label>
+                <label>Kopējais reakciju skaits:</label>
                 <span>{{ totalLikes }}</span>
             </div>
         </div>
 
-        <button @click="editProfile">Edit Profile</button>
-        <button @click="goHome">Go Home</button>
-        <button @click="logout">Log Out</button>
+        <button @click="editProfile">Rediģēt profilu</button>
+        <button @click="goHome">Uz sākumlapu</button>
+        <button @click="logout">Iziet</button>
 
         <transition name="fade">
             <div v-if="isEditing" class="edit-form">
-                <h2>Edit Profile</h2>
+                <h2>Rediģēt profilu</h2>
 
                 <div class="input-group">
-                    <label for="username">Username</label>
+                    <label for="username">Lietotājvārds</label>
                     <input v-model="form.username" type="text" id="username" />
                     <p v-if="usernameError" class="error-text">{{ usernameError }}</p>
                 </div>
 
                 <div class="input-group">
-                    <label for="email">Email</label>
+                    <label for="email">E-pasts</label>
                     <input v-model="form.email" type="email" id="email" />
                     <p v-if="emailError" class="error-text">{{ emailError }}</p>
                 </div>
 
                 <div class="input-group">
-                    <label for="description">Description</label>
+                    <label for="description">Apraksts</label>
                     <textarea v-model="form.bio" id="description" rows="4"></textarea>
                 </div>
 
                 <div class="input-group">
-                    <label for="photo">Profile Photo</label>
+                    <label for="photo">Profila attēls</label>
                     <input @change="onFileChange" type="file" id="photo" accept="image/*" />
                 </div>
                 <div v-if="preview" class="input-group">
-                    <label>Preview</label>
+                    <label>Priekšskatījums</label>
                     <img :src="preview" class="preview-img" />
                 </div>
 
-                <button @click="saveProfile" :disabled="!formIsValid">Save</button>
-                <button @click="cancelEdit">Cancel</button>
+                <button @click="saveProfile" :disabled="!formIsValid">Saglabāt</button>
+                <button @click="cancelEdit">Atcelt</button>
             </div>
         </transition>
 
@@ -75,25 +75,104 @@
         </transition>
 
         <button v-if="isAdmin" @click="toggleUserPanel" class="admin-toggle">
-            {{ showUsers ? 'Hide Users' : 'Show Users' }}
+            {{ showUsers ? 'Paslēpt administratora paneli' : 'Rādīt administratora paneli' }}
         </button>
 
         <transition name="fade">
             <div v-if="showUsers" class="admin-panel-box">
-                <h2>Manage Users</h2>
-                <ul>
-                    <li v-for="u in users" :key="u.id">
-                        <span>{{ u.username }} ({{ u.email }})</span>
-                        <span v-if="u.is_admin"> - admin</span>
-                        <button
-                            v-if="u.id !== user.id && !u.is_admin"
-                            @click="deleteUser(u.id)"
-                            class="btn-delete"
-                        >
-                            Delete
-                        </button>
-                    </li>
-                </ul>
+                <h2>Administratora panelis</h2>
+                
+                <div class="add-user-section">
+                    <h3>Pievienot jaunu lietotāju</h3>
+                    <div class="input-group">
+                        <label for="new-username">Lietotājvārds</label>
+                        <input 
+                            v-model="newUser.username" 
+                            type="text" 
+                            id="new-username" 
+                            placeholder="7 rakstzīmes"
+                        />
+                        <p v-if="newUserUsernameError" class="error-text">{{ newUserUsernameError }}</p>
+                    </div>
+                    <div class="input-group">
+                        <label for="new-email">E-pasts</label>
+                        <input 
+                            v-model="newUser.email" 
+                            type="email" 
+                            id="new-email" 
+                            placeholder="user@example.com"
+                        />
+                        <p v-if="newUserEmailError" class="error-text">{{ newUserEmailError }}</p>
+                    </div>
+                    <div class="input-group">
+                        <label for="new-password">Parole</label>
+                        <input 
+                            v-model="newUser.password" 
+                            type="password" 
+                            id="new-password" 
+                            placeholder="8 rakstzīmes (cipars, spec. simbols)"
+                        />
+                        <p v-if="newUserPasswordError" class="error-text">{{ newUserPasswordError }}</p>
+                    </div>
+                    <div class="input-group checkbox-group">
+                        <label>
+                            <input 
+                                v-model="newUser.is_admin" 
+                                type="checkbox"
+                            />
+                            Padarīt šo lietotāju par administratoru
+                        </label>
+                    </div>
+                    <button 
+                        @click="addNewUser" 
+                        :disabled="!newUserFormIsValid"
+                        class="btn-add"
+                    >
+                        Pievienot lietotāju
+                    </button>
+                </div>
+
+                <hr class="divider" />
+
+                <div class="users-list-section">
+                    <h3>Esošie lietotāji</h3>
+                    <ul>
+                        <li v-for="u in users" :key="u.id" class="user-item">
+                            <div class="user-info">
+                                <span class="user-details">
+                                    <strong>{{ u.username }}</strong> ({{ u.email }})
+                                </span>
+                                <span v-if="u.is_admin" class="badge-admin">ADMINISTRATORS</span>
+                                <span v-else class="badge-user">LIETOTĀJS</span>
+                            </div>
+                            <div v-if="u.id !== user.id" class="user-actions">
+                                <button
+                                    v-if="!u.is_admin"
+                                    @click="promoteToAdmin(u.id)"
+                                    class="btn-promote"
+                                >
+                                    Padarīt par administratoru
+                                </button>
+                                <button
+                                    v-if="u.is_admin"
+                                    @click="demoteFromAdmin(u.id)"
+                                    class="btn-demote"
+                                >
+                                    Noņemt administratora lomu
+                                </button>
+                                <button
+                                    @click="deleteUser(u.id)"
+                                    class="btn-delete"
+                                >
+                                    Dzēst
+                                </button>
+                            </div>
+                            <div v-else class="current-user-label">
+                                Jūs
+                            </div>
+                        </li>
+                    </ul>
+                </div>
             </div>
         </transition>
     </div>
@@ -106,6 +185,7 @@ import { router } from '@inertiajs/vue3';
 
 const usernameRegex = /^[A-Za-z0-9_]{7,}$/;
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const passwordRegex = /^.{8,}$/;
 
 const user = ref({ id: null, username: '', email: '', bio: '', profile_photo_url: '' });
 const form = ref({ username: '', email: '', bio: '' });
@@ -122,20 +202,56 @@ const isAdmin = ref(false);
 const currentUserId = ref(null);
 const showUsers = ref(false);
 
+const newUser = ref({
+    username: '',
+    email: '',
+    password: '',
+    is_admin: false
+});
+
 const usernameError = computed(() => {
     if (!isEditing.value) return '';
-    if (!form.value.username) return 'Username is required';
-    if (!usernameRegex.test(form.value.username)) return 'Username at least 7 characters';
+    if (!form.value.username) return 'Lietotājvārds ir obligāts';
+    if (!usernameRegex.test(form.value.username)) return 'Lietotājvārds vismaz 7 rakstzīmes';
     return '';
 });
+
 const emailError = computed(() => {
     if (!isEditing.value) return '';
-    if (!form.value.email) return 'Email is required';
-    if (!emailRegex.test(form.value.email)) return 'Invalid email format';
+    if (!form.value.email) return 'E-pasts ir obligāts';
+    if (!emailRegex.test(form.value.email)) return 'Nederīgs e-pasta formāts';
     return '';
 });
+
 const formIsValid = computed(() => {
     return !usernameError.value && !emailError.value;
+});
+
+const newUserUsernameError = computed(() => {
+    if (!newUser.value.username) return '';
+    if (!usernameRegex.test(newUser.value.username)) return 'Lietotājvārds vismaz 7 rakstzīmes (burti, cipari, speciālais simbols)';
+    return '';
+});
+
+const newUserEmailError = computed(() => {
+    if (!newUser.value.email) return '';
+    if (!emailRegex.test(newUser.value.email)) return 'Nederīgs e-pasta formāts';
+    return '';
+});
+
+const newUserPasswordError = computed(() => {
+    if (!newUser.value.password) return '';
+    if (!passwordRegex.test(newUser.value.password)) return 'Parolei jābūt vismaz 8 rakstzīmēm';
+    return '';
+});
+
+const newUserFormIsValid = computed(() => {
+    return newUser.value.username && 
+           newUser.value.email && 
+           newUser.value.password &&
+           !newUserUsernameError.value && 
+           !newUserEmailError.value && 
+           !newUserPasswordError.value;
 });
 
 function onFileChange(e) {
@@ -230,7 +346,7 @@ async function saveProfile() {
         await fetchStats();
     } catch (e) {
         console.error('Error saving profile:', e);
-        showMessage('Failed to save profile.');
+        showMessage('Ķļūda saglabājot profilu');
     }
 }
 
@@ -258,13 +374,77 @@ function toggleUserPanel() {
     showUsers.value = !showUsers.value;
 }
 
+async function addNewUser() {
+    if (!newUserFormIsValid.value) {
+        showMessage('Lūdzu, aizpildiet visus laukus pareizi');
+        return;
+    }
+    
+    try {
+        await axios.post('/admin/users', {
+            username: newUser.value.username,
+            email: newUser.value.email,
+            password: newUser.value.password,
+            is_admin: newUser.value.is_admin
+        });
+        
+        showMessage('Lietotājs veiksmīgi pievienots');
+
+        newUser.value = {
+            username: '',
+            email: '',
+            password: '',
+            is_admin: false
+        };
+        
+        await fetchUsers();
+    } catch (e) {
+        console.error("Failed to add user:", e);
+        showMessage(e.response?.data?.message || 'Kļūda, pievienojot lietotāju');
+    }
+}
+
+async function promoteToAdmin(userId) {
+    if (!confirm("Padarīt šo lietotāju par administratoru?")) return;
+    
+    try {
+        await axios.patch(`/admin/users/${userId}/role`, {
+            is_admin: true
+        });
+        
+        showMessage('User promoted to admin');
+        await fetchUsers();
+    } catch (e) {
+        console.error("Failed to promote user:", e);
+        showMessage('Kļūda, paaugstinot lietotāja lomu');
+    }
+}
+
+async function demoteFromAdmin(userId) {
+    if (!confirm("Atņemt administratora privilēģijas šim lietotājam?")) return;
+
+    try {
+        await axios.patch(`/admin/users/${userId}/role`, {
+            is_admin: false
+        });
+
+        showMessage('Administratora loma atņemta');
+        await fetchUsers();
+    } catch (e) {
+        console.error("Failed to demote user:", e);
+        showMessage('Kļūda, atņemot administratora lomu');
+    }
+}
+
 async function deleteUser(id) {
-    if (!confirm("Delete this user?")) return;
+    if (!confirm("Dzēst šo lietotāju? Šo darbību nevar atcelt.")) return;
     try {
         await axios.delete(`/users/${id}`);
+        showMessage('Lietotājs veiksmīgi dzēsts');
         await fetchUsers();
     } catch (e) {
         console.error("Failed to delete user:", e);
+        showMessage('Kļūda, dzēšot lietotāju');
     }
 }
 
@@ -284,25 +464,24 @@ onMounted(async () => {
 
 <style scoped>
 .profile {
-    max-width: 600px;
+    max-width: 700px;
     margin: 50px auto;
     padding: 20px;
-    text-align: center;
     background-color: var(--post-bg);
     border: 1px solid var(--post-border);
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    font-family: sans-serif;
+    border-radius: 5px;
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.1);
+    font-size: 16px;
+    display: flex;
+    flex-direction: column;
     color: var(--post-text);
-    transition: background-color 0.3s ease,
-                border-color 0.3s ease,
-                color 0.3s ease;
+    transition: all 0.3s ease;
 }
 
 .profile h1 {
-    font-family: "Perfectly Vintages";
-    font-size: 40px;
-    margin-bottom: 20px;
+    font-family: "Aileron", serif;
+    font-size: 48px;
+    margin: 0 0 20px 0;
     color: var(--post-text);
 }
 
@@ -313,8 +492,8 @@ onMounted(async () => {
 }
 
 .avatar img {
-    width: 120px;
-    height: 120px;
+    width: 140px;
+    height: 140px;
     object-fit: cover;
     border-radius: 50%;
     background-color: var(--post-bg);
@@ -322,13 +501,16 @@ onMounted(async () => {
 }
 
 .profile-info {
-    font-size: 18px;
+    font-size: 16px;
     text-align: left;
     margin-bottom: 20px;
+    padding: 16px;
+    background-color: var(--input-bg);
+    border-radius: 4px;
 }
 
 .info-item {
-    margin-bottom: 10px;
+    margin-bottom: 12px;
 }
 
 .info-item label {
@@ -337,65 +519,75 @@ onMounted(async () => {
     color: var(--post-text);
 }
 
-button {
-    width: 30%;
-    margin: 20px 10px 0 0;
-    padding: 12px;
-    background-color: var(--input-bg);
+.info-item span {
     color: var(--post-text);
-    border: 1px solid var(--input-border);
-    border-radius: 5px;
-    cursor: pointer;
-    font-family: 'Perfectly Vintages';
-    font-size: 20px;
 }
 
-button:hover {
-    filter: brightness(1.1);
+button {
+    background-color: transparent;
+    border: 1px solid var(--input-border);
+    color: var(--post-text);
+    border-radius: 4px;
+    padding: 8px 14px;
+    font-size: 15px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin: 8px 6px 0 0;
+}
+
+button:hover:not(:disabled) {
+    background-color: var(--input-bg);
+}
+
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }
 
 .error-text {
     color: #e74c3c;
     font-size: 14px;
-    margin-top: 4px;
+    margin-top: 6px;
 }
 
 .error-notification {
-    margin-top: 20px;
-    padding: 10px;
+    margin-top: 16px;
+    padding: 12px;
     background-color: var(--input-bg);
     color: var(--post-text);
     border: 1px solid var(--input-border);
     border-radius: 4px;
+    font-size: 14px;
 }
 
 .edit-form {
     background-color: var(--post-bg);
     border: 1px solid var(--post-border);
-    border-radius: 8px;
+    border-radius: 5px;
     padding: 20px;
     margin-top: 20px;
     text-align: left;
     color: var(--post-text);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.1);
 }
 
 .edit-form h2 {
-    font-family: "Perfectly Vintages";
-    font-size: 28px;
-    margin-bottom: 15px;
+    font-family: "Aileron", serif;
+    font-size: 32px;
+    margin: 0 0 20px 0;
     color: var(--post-text);
 }
 
 .input-group {
-    margin-bottom: 15px;
+    margin-bottom: 16px;
 }
 
 .input-group label {
     display: block;
-    margin-bottom: 5px;
+    margin-bottom: 6px;
     font-weight: bold;
     color: var(--post-text);
+    font-size: 15px;
 }
 
 .input-group input,
@@ -406,6 +598,20 @@ button:hover {
     color: var(--post-text);
     border: 1px solid var(--input-border);
     border-radius: 4px;
+    font-size: 15px;
+    box-sizing: border-box;
+}
+
+.checkbox-group label {
+    display: flex;
+    align-items: center;
+    font-weight: normal;
+    font-size: 15px;
+}
+
+.checkbox-group input[type="checkbox"] {
+    width: auto;
+    margin-right: 8px;
 }
 
 .preview-img {
@@ -413,65 +619,204 @@ button:hover {
     max-height: 100px;
     border-radius: 4px;
     display: block;
-    margin-top: 5px;
+    margin-top: 6px;
     border: 1px solid var(--post-border);
     background-color: var(--post-bg);
 }
 
 .admin-toggle {
-    width: 40%;
-    margin: 30px auto 20px;
-    padding: 12px;
-    background-color: var(--input-bg);
-    color: var(--post-text);
-    border: 1px solid var(--input-border);
-    border-radius: 5px;
+    width: auto;
+    margin: 20px auto;
+    padding: 8px 14px;
+    background-color: #333;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
     cursor: pointer;
-    font-family: 'Perfectly Vintages';
-    font-size: 20px;
+    font-size: 15px;
     display: block;
+    transition: background-color 0.2s;
+}
+
+.admin-toggle:hover {
+    background-color: #555;
 }
 
 .admin-panel-box {
-    max-width: 600px;
-    margin: 30px auto;
+    max-width: 100%;
+    margin: 20px 0;
     padding: 20px;
     background-color: var(--post-bg);
     border: 1px solid var(--post-border);
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    border-radius: 5px;
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.1);
     color: var(--post-text);
-    font-size: 18px;
+    font-size: 16px;
     text-align: left;
 }
 
 .admin-panel-box h2 {
-    font-family: "Perfectly Vintages";
-    font-size: 28px;
-    margin-bottom: 15px;
+    font-family: "Aileron", serif;
+    font-size: 32px;
+    margin: 0 0 20px 0;
+    text-align: center;
+    color: var(--post-text);
 }
 
-.admin-panel-box ul {
+.admin-panel-box h3 {
+    font-family: "Aileron", serif;
+    font-size: 24px;
+    margin: 0 0 16px 0;
+    color: var(--post-text);
+}
+
+.add-user-section {
+    background-color: var(--input-bg);
+    padding: 16px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+}
+
+.divider {
+    border: none;
+    border-top: 1px solid var(--input-border);
+    margin: 20px 0;
+}
+
+.users-list-section ul {
     list-style-type: none;
     padding: 0;
+    margin: 0;
 }
 
-.admin-panel-box li {
-    margin-bottom: 10px;
+.user-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    margin-bottom: 12px;
+    background-color: var(--input-bg);
+    border: 1px solid var(--input-border);
+    border-radius: 4px;
+    font-size: 15px;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+}
+
+.user-details {
+    font-size: 15px;
+}
+
+.badge-admin,
+.badge-user {
+    padding: 4px 8px;
+    border-radius: 3px;
+    font-size: 12px;
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+.badge-admin {
+    background-color: #3498db;
+    color: white;
+}
+
+.badge-user {
+    background-color: #95a5a6;
+    color: white;
+}
+
+.user-actions {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.current-user-label {
+    font-style: italic;
+    color: var(--post-text);
+    opacity: 0.7;
+    font-size: 14px;
+}
+
+.btn-add {
+    width: 100%;
+    margin-top: 12px;
+    padding: 8px 14px;
+    background-color: #333;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    font-size: 15px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-add:hover:not(:disabled) {
+    background-color: #555;
+}
+
+.btn-promote {
+    padding: 6px 10px;
+    background-color: transparent;
+    color: #3498db;
+    border: 1px solid #3498db;
+    border-radius: 4px;
+    font-size: 13px;
+    cursor: pointer;
+    width: auto;
+    margin: 0;
+    transition: all 0.2s ease;
+}
+
+.btn-promote:hover {
+    background-color: rgba(52, 152, 219, 0.1);
+}
+
+.btn-demote {
+    padding: 6px 10px;
+    background-color: transparent;
+    color: #f39c12;
+    border: 1px solid #f39c12;
+    border-radius: 4px;
+    font-size: 13px;
+    cursor: pointer;
+    width: auto;
+    margin: 0;
+    transition: all 0.2s ease;
+}
+
+.btn-demote:hover {
+    background-color: rgba(243, 156, 18, 0.1);
 }
 
 .btn-delete {
-    margin-left: 10px;
-    padding: 6px 12px;
-    background-color: #e74c3c;
-    color: white;
-    border: none;
+    padding: 6px 10px;
+    background-color: transparent;
+    color: #e74c3c;
+    border: 1px solid #e74c3c;
     border-radius: 4px;
-    font-size: 14px;
+    font-size: 13px;
     cursor: pointer;
+    width: auto;
+    margin: 0;
+    transition: all 0.2s ease;
 }
 
 .btn-delete:hover {
-    background-color: #c0392b;
+    background-color: rgba(231, 76, 60, 0.1);
+}
+
+.fade-enter-active, .fade-leave-active {
+    transition: opacity 0.3s;
+}
+
+.fade-enter-from, .fade-leave-to {
+    opacity: 0;
 }
 </style>
