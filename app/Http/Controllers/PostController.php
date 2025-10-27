@@ -123,13 +123,13 @@ class PostController extends Controller
         $post = \App\Models\Post::with('user')->findOrFail($id);
         $authUser = auth()->user();
 
-        // Владелец поста может удалить его
+        // Publikācijas autors var dzēst to
         if ($authUser->id === $post->user_id) {
             $post->delete();
             return response()->json(['message' => 'Post deleted']);
         }
 
-        // Админ может удалить посты обычных пользователей
+        // Administrators var dzēst visas publikācijas 
         if ($authUser->is_admin && !$post->user->is_admin) {
             $post->delete();
             return response()->json(['message' => 'Post deleted by admin']);
