@@ -446,7 +446,7 @@ export default {
         this.isLoggedIn = !!res.data;
         if (this.isLoggedIn) {
           this.currentUserId = res.data.id;
-          this.isAdmin = res.data.is_admin;
+          this.isAdmin = !!res.data.is_admin; // Convert to boolean
         }
       } catch {}
     },
