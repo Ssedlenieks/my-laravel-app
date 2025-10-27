@@ -128,6 +128,25 @@ export default {
 </script>
 
 <style scoped>
+/* CSS Variables for Light and Dark Mode */
+.post-card {
+  --post-bg: #ffffff;
+  --post-text: #2c3e50;
+  --post-border: #e0e0e0;
+  --input-bg: #ffffff;
+  --input-border: #d1d5db;
+}
+
+/* Dark mode support - matches body.dark from navbar toggle */
+body.dark .post-card,
+body.dark-mode .post-card {
+  --post-bg: #1f2937;
+  --post-text: #d1d5db;
+  --post-border: #374151;
+  --input-bg: #273449;
+  --input-border: #4b5563;
+}
+
 .post-card {
   padding: 16px;
   background-color: var(--post-bg);
