@@ -214,7 +214,7 @@ export default {
       editingPost: null,
       searchActive: false,
       expandedPostId: null,
-      postMeaningModes: {}, // Track meaning mode for each post
+      postMeaningModes: {},
       selectedWord: "",
       currentLookupPostId: null,
     };
@@ -242,6 +242,12 @@ export default {
       this.searchActive = false;
     },
 
+    highlight(text) {
+      if (!this.searchActive || !this.searchQuery) return text;
+      const esc = this.searchQuery.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      return text.replace(new RegExp(`(${esc})`, "gi"), "<mark>$1</mark>");
+    },
+
     // Post Expansion Methods
     async togglePostExpand(postId) {
       if (this.expandedPostId === postId) {
@@ -251,16 +257,26 @@ export default {
         this.selectedWord = "";
         await this.fetchComments(postId);
 
-        // Smooth scroll to top on mobile when post is expanded
+        // Scroll to expanded post on mobile
         this.$nextTick(() => {
           if (window.innerWidth <= 768) {
-            const expandedPost = document.querySelector('.expanded-post-column');
-            if (expandedPost) {
-              expandedPost.scrollIntoView({
-                behavior: 'smooth',
-                block: 'start'
-              });
-            }
+            // Wait a bit for the DOM to fully render
+            setTimeout(() => {
+              const expandedEl = document.querySelector('.expanded-post-column');
+              if (expandedEl) {
+                // Get position relative to viewport
+                const rect = expandedEl.getBoundingClientRect();
+                const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+
+                // Calculate position with small offset
+                const targetPosition = rect.top + scrollTop - 10;
+
+                window.scrollTo({
+                  top: targetPosition,
+                  behavior: 'smooth'
+                });
+              }
+            }, 100);
           }
         });
       }
@@ -274,9 +290,16 @@ export default {
 
     // Dictionary Methods
     handleMeaningModeChanged(data) {
-      // data should contain { mode: boolean, postId: number }
       if (data.postId) {
         this.postMeaningModes[data.postId] = data.mode;
+      }
+    },
+
+    handleWordClick(token, postId) {
+      const word = token.trim();
+      if (this.isWord(word) && this.postMeaningModes[postId]) {
+        this.selectedWord = word;
+        this.currentLookupPostId = postId;
       }
     },
 
@@ -368,9 +391,6 @@ export default {
             }))
           );
         }
-
-        // Backend now includes reaction counts, no need for individual API calls!
-        // Reaction counts are already in post.reactionCounts
 
         // Apply search filter
         if (this.searchActive && this.searchQuery.trim()) {
@@ -629,7 +649,7 @@ body.dark-mode .post-form,
   padding: 15px 20px;
   border-bottom: 1px solid var(--post-border);
   display: flex;
-  justify-content: between;
+  justify-content: space-between;
   align-items: center;
 }
 
@@ -1189,20 +1209,24 @@ body.dark-mode .success-message,
     flex-direction: column;
   }
 
-  .posts-grid-column.with-expanded {
-    flex: 1;
-    max-width: 100%;
-    order: 2; /* Move posts below expanded post on mobile */
-  }
-
   .expanded-post-column {
+    /* Force it to appear at the top */
+    order: -1;
     position: static;
     max-height: none;
-    margin: 10px 0;
-    order: 1; /* Show expanded post first on mobile */
+    margin: 0 0 20px 0;
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     border-radius: 12px;
     overflow: hidden;
+  }
+
+  .posts-grid-column {
+    order: 1;
+  }
+
+  .posts-grid-column.with-expanded {
+    flex: 1;
+    max-width: 100%;
   }
 
   .expanded-post-card {
@@ -1263,11 +1287,6 @@ body.dark-mode .success-message,
   .posts-grid-column.with-expanded .post-row {
     opacity: 0.6;
     margin-top: 20px;
-    transition: opacity 0.3s ease;
-  }
-
-  .posts-grid-column.with-expanded {
-    transition: all 0.3s ease;
   }
 }
 </style>
