@@ -92,6 +92,31 @@ export default {
 </script>
 
 <style scoped>
+/* CSS Variables for Light and Dark Mode */
+.search-filters {
+  --post-bg: #ffffff;
+  --post-text: #2c3e50;
+  --post-border: #e0e0e0;
+  --input-bg: #ffffff;
+  --input-border: #d1d5db;
+  --button-bg: #2196f3;
+  --button-text: #ffffff;
+  --button-hover-bg: #1976d2;
+}
+
+/* Dark mode support - matches body.dark from navbar toggle */
+body.dark .search-filters,
+body.dark-mode .search-filters {
+  --post-bg: #1f2937;
+  --post-text: #d1d5db;
+  --post-border: #374151;
+  --input-bg: #273449;
+  --input-border: #4b5563;
+  --button-bg: #1976d2;
+  --button-text: #ffffff;
+  --button-hover-bg: #1565c0;
+}
+
 .filter-bar {
   display: flex;
   align-items: flex-start;

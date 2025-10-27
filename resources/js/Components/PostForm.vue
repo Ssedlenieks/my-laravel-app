@@ -550,15 +550,6 @@ export default {
 
 <style scoped>
 /* CSS Variables for Light and Dark Mode */
-:root {
-  --post-bg: #ffffff;
-  --post-text: #2c3e50;
-  --post-border: #e0e0e0;
-  --input-bg: #ffffff;
-  --input-border: #d1d5db;
-}
-
-/* Light mode (default) */
 .post-form {
   --post-bg: #ffffff;
   --post-text: #2c3e50;
@@ -567,15 +558,14 @@ export default {
   --input-border: #d1d5db;
 }
 
-/* Dark mode CSS variables - matches system preference */
-@media (prefers-color-scheme: dark) {
-  .post-form {
-    --post-bg: #1f2937;
-    --post-text: #d1d5db;
-    --post-border: #374151;
-    --input-bg: #273449;
-    --input-border: #4b5563;
-  }
+/* Dark mode support - matches body.dark from navbar toggle */
+body.dark .post-form,
+body.dark-mode .post-form {
+  --post-bg: #1f2937;
+  --post-text: #d1d5db;
+  --post-border: #374151;
+  --input-bg: #273449;
+  --input-border: #4b5563;
 }
 
 /* Class-based dark mode support - matches main app.css */
@@ -745,12 +735,6 @@ body.dark-mode .post-form,
 }
 
 /* Dark mode enhanced styles for dictionary mode */
-@media (prefers-color-scheme: dark) {
-  .meaning-mode-text .clickable-word:hover {
-    background-color: rgba(100, 181, 246, 0.2);
-  }
-}
-
 body.dark .meaning-mode-text .clickable-word:hover,
 body.dark-mode .meaning-mode-text .clickable-word:hover,
 .dark .meaning-mode-text .clickable-word:hover {
@@ -919,81 +903,6 @@ body.dark-mode .meaning-mode-text .clickable-word:hover,
   border: 2px solid #4caf50;
   border-radius: 8px;
   text-align: center;
-}
-
-/* Dark mode styles for create post section */
-@media (prefers-color-scheme: dark) {
-  .create-post-wrapper {
-    background: linear-gradient(135deg, #121622 0%, #1f2937 100%);
-    border-top: 3px solid #64b5f6;
-  }
-
-  .create-post-container {
-    background: #1f2937;
-    border: 1px solid #374151;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-  }
-
-  .create-title {
-    color: #64b5f6;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-  }
-
-  .create-post-container label {
-    color: #64b5f6;
-  }
-
-  .create-post-container input[type="text"],
-  .create-post-container textarea {
-    background: #273449;
-    border: 3px solid #374151;
-    color: #d1d5db;
-  }
-
-  .create-post-container input[type="text"]:focus,
-  .create-post-container textarea:focus {
-    border-color: #64b5f6;
-    background: #1f2937;
-    box-shadow: 0 0 0 3px rgba(100, 181, 246, 0.2), inset 0 2px 4px rgba(0, 0, 0, 0.2);
-  }
-
-  .create-categories-checkboxes {
-    background: #273449;
-    border: 2px solid #374151;
-  }
-
-  .checkbox-item {
-    background: #1f2937;
-    border: 1px solid #4b5563;
-    color: #d1d5db;
-  }
-
-  .checkbox-item:hover {
-    background: #374151;
-    border-color: #64b5f6;
-    box-shadow: 0 2px 8px rgba(100, 181, 246, 0.25);
-  }
-
-  .category-label {
-    color: #d1d5db;
-  }
-
-  .create-post-container input[type="file"] {
-    background: #273449;
-    border: 3px dashed #64b5f6;
-    color: #d1d5db;
-  }
-
-  .create-post-container input[type="file"]:hover {
-    background: #1f2937;
-    border-color: #42a5f5;
-  }
-
-  .success-message {
-    background: #2e7d32;
-    border-color: #4caf50;
-    color: #ffffff;
-  }
 }
 
 /* Alternative class-based dark mode (matches app.css body.dark) */
