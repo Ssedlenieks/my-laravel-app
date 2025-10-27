@@ -1,135 +1,42 @@
 <template>
   <div class="post-form">
     <div class="content-wrapper">
-      <div v-if="categories.length" class="filter-bar">
-        <div class="filter-left">
-          <div class="filter-item">
-            <div class="search-box">
-              <input
-                type="text"
-                v-model="searchQuery"
-                placeholder="Search posts..."
-              />
-              <button class="search-btn" @click="searchPosts">Meklēt</button>
-            </div>
-          </div>
-        </div>
-       <!--Kategoriju izvēlēs sadaļa-->
-        <div class="filter-center">
-          <div class="filter-item category-box" v-if="!hideCategories">
-            <label>Izvēlēties kategorijas:</label>
-            <div class="categories-checkboxes">
-              <label
-                v-for="c in categories"
-                :key="c.id"
-                class="checkbox-item"
-              >
-                <span class="category-label">{{ c.name }}</span>
-                <input
-                  type="checkbox"
-                  :value="c.id"
-                  v-model="selectedCategories"
-                  @change="fetchPosts"
-                  class="category-checkbox"
-                />
-              </label>
-            </div>
-            <p class="found-count">Atrasti {{ posts.length }} ieraksti</p>
-          </div>
-        </div>
-        <!--Publikāciju krtošana pēc reakcijām vai pēc datuma-->
-        <div class="filter-right">
-          <div class="filter-item sort-box">
-            <label for="sortBy">Kārtot pēc:</label>
-            <select v-model="sortBy" @change="fetchPosts">
-              <option value="reactions">Reakcijas</option>
-              <option value="date">Datums</option>
-            </select>
-          </div>
-        </div>
-      </div>
+      <!-- Search and Filters -->
+      <SearchFilters
+        v-if="categories.length"
+        :categories="categories"
+        :hideCategories="hideCategories"
+        :foundCount="posts.length"
+        :initialSelectedCategories="selectedCategories"
+        @search="handleSearch"
+        @categories-changed="handleCategoriesChanged"
+        @sort-changed="handleSortChanged"
+      />
 
+      <!-- Posts Layout -->
       <div class="post-container">
         <div class="posts-layout">
+          <!-- Posts Grid -->
           <div class="posts-grid-column" :class="{ 'with-expanded': expandedPostId }">
             <div v-if="posts.length" class="post-row">
-              <div
+              <PostCard
                 v-for="post in posts"
                 :key="post.id"
-                class="post"
-                :class="{ 'post-active': expandedPostId === post.id }"
-              >
-                <div class="post-regular-content">
-                  <h3 v-html="highlight(post.title)"></h3>
-                  <h4>{{ post.categories.map(c => c.name).join(', ') }}</h4>
-
-                  <div v-if="post.image_url" class="post-image-container">
-                    <img
-                      :src="post.image_url"
-                      class="post-uploaded-image"
-                      @click="togglePostExpand(post.id)"
-                    />
-                  </div>
-
-                  <div class="user-name">
-                    <div class="author-info">
-                      <img
-                        v-if="post.user?.profile_photo_url"
-                        :src="post.user.profile_photo_url"
-                        alt="Author photo"
-                        class="profile-photo-post"
-                      />
-                      <p class="author-text">
-                        <strong>{{ post.user?.username || 'Unknown' }}</strong>
-                      </p>
-                    </div>
-                    <p class="post-date">{{ post.created_date }}</p>
-                  </div>
-
-                  <div class="post-content-container">
-                    <div>
-                      <p v-html="highlight(truncateContent(post.content))"></p>
-                    </div>
-                  </div>
-                <!--Reakciju pievienošanas sadaļa-->
-                  <div class="reaction-icons">
-                    <button @click="addReaction('like', post.id)">👍</button>
-                    <span>{{ post.reactionCounts?.like }}</span>
-                    <button @click="addReaction('dislike', post.id)">👎</button>
-                    <span>{{ post.reactionCounts?.dislike }}</span>
-                    <button @click="addReaction('heart', post.id)">❤️</button>
-                    <span>{{ post.reactionCounts?.heart }}</span>
-                  </div>
-
-                  <div class="post-buttons">
-                    <button
-                      v-if="(post.user && post.user.id === currentUserId) || (isAdmin && !post.user.is_admin)"
-                      @click="deletePost(post.id)"
-                      class="btn-delete"
-                    >
-                      Delete
-                    </button>
-
-                    <button
-                      v-if="(post.user && post.user.id === currentUserId) || (isAdmin && !post.user.is_admin)"
-                      @click="startEdit(post)"
-                      class="btn-edit"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      class="open-post-btn"
-                      @click="togglePostExpand(post.id)"
-                    >
-                      {{ expandedPostId === post.id ? 'Close' : 'Open Post' }}
-                    </button>
-                  </div>
-                </div>
-              </div>
+                :post="post"
+                :isActive="expandedPostId === post.id"
+                :searchQuery="searchQuery"
+                :searchActive="searchActive"
+                :currentUserId="currentUserId"
+                :isAdmin="isAdmin"
+                @expand-post="togglePostExpand"
+                @add-reaction="addReaction"
+                @delete-post="deletePost"
+                @edit-post="startEdit"
+              />
             </div>
           </div>
 
-          <!-- Pilnīgi atvērtas publikācijas sadaļa -->
+          <!-- Expanded Post Column -->
           <div v-if="expandedPostId" class="expanded-post-column">
             <div class="expanded-post-card">
               <div class="expanded-header">
@@ -156,111 +63,27 @@
                       </div>
 
                       <div v-if="post.image_url" class="expanded-image-container">
-                        <img
-                          :src="post.image_url"
-                          class="expanded-post-image"
-                        />
+                        <img :src="post.image_url" class="expanded-post-image" />
                       </div>
 
-                      <div class="post-full-content">
-                        <template v-if="meaningMode">
-                          <p class="meaning-mode-text">
-                            <template v-for="(token, index) in tokenizeContent(post.content)" :key="index">
-                              <span
-                                v-if="isWord(token)"
-                                class="clickable-word"
-                                @click="selectWordForMeaning(token, post.id)"
-                                :class="{ 'active-word': selectedWord === cleanWord(token) && currentLookupPostId === post.id }"
-                              >
-                                {{ token }}
-                              </span>
-                              <span v-else class="non-clickable">
-                                {{ token }}
-                              </span>
-                            </template>
-                          </p>
-                        </template>
-                        <template v-else>
-                          <p>{{ post.content }}</p>
-                        </template>
-                      </div>
-
-                      <!-- Vardnīcas sadaļas ieslēgšanas/izslēgšanas poga -->
-                      <button @click="toggleMeaningMode" class="btn-meaning">
-                        {{ meaningMode ? 'Izslēgt vārdnīcu' : 'Ieslēgt vārdnīcu' }}
-                      </button>
-
-                      <!-- Vardnīcas sadaļa, izvēlēta vārda skaidrojums -->
-                      <div v-if="meaningMode && selectedWord" class="meaning-section">
-                        <div class="meaning-header" @click="toggleMeaningExpanded">
-                          <h4>📖 Vārda skaidrojums</h4>
-                          <span class="expand-icon" :class="{ 'expanded': meaningExpanded }">▼</span>
-                        </div>
-                        <transition name="meaning-expand">
-                          <div v-if="meaningExpanded" class="meaning-content">
-                            <div class="word-definition">
-                              <strong class="word-title">{{ selectedWord }}</strong>
-                              <p class="definition-text">
-                                <span v-if="isLoadingMeaning">Meklē definīciju…</span>
-                                <span v-else>{{ wordMeaningData }}</span>
-                              </p>
-                            </div>
-                          </div>
-                        </transition>
-                      </div>
+                      <!-- Dictionary Component (handles content display and word clicking) -->
+                      <MeaningLookup
+                        :content="post.content"
+                        :postId="post.id"
+                        @mode-changed="handleMeaningModeChanged"
+                        @word-selected="handleWordSelected"
+                      />
                     </div>
 
-                    <!-- Komentāru sadaļa -->
-                    <div class="comments-section">
-                      <h4 class="section-title">Komentāri ({{ post.comments ? post.comments.length : 0 }})</h4>
-
-                      <div v-if="post.comments && post.comments.length" class="comments-list">
-                        <div
-                          v-for="comment in post.comments"
-                          :key="comment.id"
-                          class="comment-item"
-                        >
-                          <div class="comment-header">
-                            <div class="comment-author">
-                              <img
-                                v-if="comment.user?.profile_photo_url"
-                                :src="comment.user.profile_photo_url"
-                                alt="Comment author"
-                                class="comment-profile-photo"
-                              />
-                              <strong>{{ comment.user?.username || 'Unknown' }}</strong>
-                            </div>
-                            <span class="comment-date">{{ comment.created_date }}</span>
-                          </div>
-                          <div class="comment-content-wrapper">
-                            <p class="comment-content">{{ comment.content }}</p>
-                            <div
-                              v-if="isLoggedIn && (
-                                currentUserId === comment.user.id ||
-                                (isAdmin && !comment.user.is_admin)
-                              )"
-                              class="comments-delete"
-                            >
-                              <span @click="deleteComment(comment.id, post.id)" class="delete">×</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div v-else class="no-comments">
-                        <p>No comments yet</p>
-                      </div>
-
-                      <div class="add-comment" v-if="isLoggedIn">
-                        <textarea
-                          v-model="newCommentContent"
-                          placeholder="Pievienot komentāru..."
-                          @keydown.enter.prevent="addComment(post.id)"
-                        ></textarea>
-                        <button @click="addComment(post.id)">Publicēt komentāru</button>
-                      </div>
-                      <p v-else class="login-note">Pierakstieties lai pievienotu komentāru</p>
-                    </div>
+                    <!-- Comments Section -->
+                    <CommentsSection
+                      :comments="post.comments || []"
+                      :isLoggedIn="isLoggedIn"
+                      :currentUserId="currentUserId"
+                      :isAdmin="isAdmin"
+                      @add-comment="handleAddComment(post.id, $event)"
+                      @delete-comment="handleDeleteComment($event, post.id)"
+                    />
                   </div>
                 </div>
               </div>
@@ -269,7 +92,7 @@
         </div>
       </div>
 
-      <!-- Publikāciju izveidošanas sadaļa (Pieejama tikai reģistrētiem lietotājiem) -->
+      <!-- Create Post Section -->
       <div v-if="isLoggedIn" class="create-post-wrapper">
         <div class="create-post-container">
           <h2 class="create-title">Rakstiet savas domas</h2>
@@ -282,11 +105,7 @@
             <div class="category-box create-category-box">
               <label>Izvēlēties kategorijas:</label>
               <div class="categories-checkboxes create-categories-checkboxes">
-                <label
-                  v-for="c in categories"
-                  :key="c.id"
-                  class="checkbox-item"
-                >
+                <label v-for="c in categories" :key="c.id" class="checkbox-item">
                   <input
                     type="checkbox"
                     :value="c.id"
@@ -302,12 +121,7 @@
               <label>Saturs:</label>
               <textarea v-model="post.content" required></textarea>
               <label>Foto:</label>
-              <input
-                type="file"
-                accept="image/*"
-                @change="handleImageUpload"
-                ref="fileInput"
-              />
+              <input type="file" accept="image/*" @change="handleImageUpload" ref="fileInput" />
               <button type="submit">Publicēt ziņu</button>
             </div>
           </form>
@@ -315,7 +129,7 @@
         </div>
       </div>
 
-      <!-- Publikāciju rediģēšanas modālais logs -->
+      <!-- Edit Post Modal -->
       <div v-if="editingPost" class="modal" @click="cancelEdit">
         <div class="modal-content full-post-container" @click.stop>
           <div class="edit-form-col">
@@ -326,11 +140,7 @@
             <textarea v-model="editingPost.content" placeholder="Content"></textarea>
             <label>Select Categories:</label>
             <div class="categories-checkboxes">
-              <label
-                v-for="c in categories"
-                :key="c.id"
-                class="checkbox-item"
-              >
+              <label v-for="c in categories" :key="c.id" class="checkbox-item">
                 <span class="category-label">{{ c.name }}</span>
                 <input
                   type="checkbox"
@@ -340,7 +150,7 @@
                 />
               </label>
             </div>
-            <label>Mainīt :</label>
+            <label>Mainīt:</label>
             <input type="file" accept="image/*" @change="handleImageUpload" />
             <div class="buttons-row">
               <button @click="updatePost">Saglabāt</button>
@@ -366,9 +176,19 @@
 
 <script>
 import axios from "axios";
+import PostCard from "./PostCard.vue";
+import SearchFilters from "./SearchFilters.vue";
+import CommentsSection from "./CommentsSection.vue";
+import MeaningLookup from "./MeaningLookup.vue";
 
 export default {
   name: "PostForm",
+  components: {
+    PostCard,
+    SearchFilters,
+    CommentsSection,
+    MeaningLookup
+  },
   props: {
     hideCategories: Boolean,
     filterCategoryName: {
@@ -380,10 +200,10 @@ export default {
     return {
       post: { title: "", content: "", category_ids: [] },
       selectedCategories: [],
-  lastFetchToken: 0,
-  isLoadingPosts: false,
+      lastFetchToken: 0,
+      isLoadingPosts: false,
       searchQuery: "",
-      sortBy: "",
+      sortBy: "reactions",
       message: "",
       posts: [],
       categories: [],
@@ -394,82 +214,80 @@ export default {
       editingPost: null,
       searchActive: false,
       expandedPostId: null,
-      meaningMode: false,
+      postMeaningModes: {}, // Track meaning mode for each post
       selectedWord: "",
-      wordMeaningData: "",
-      isLoadingMeaning: false,
-      meaningExpanded: false,
       currentLookupPostId: null,
     };
   },
   methods: {
-    // Pilnīgi atvērtās publikācijas pārslēgšana
+    // Search and Filter Methods
+    handleSearch(query) {
+      this.searchQuery = query;
+      this.searchActive = true;
+      this.fetchPosts();
+    },
+
+    handleCategoriesChanged(categories) {
+      this.selectedCategories = categories;
+      this.fetchPosts();
+    },
+
+    handleSortChanged(sortBy) {
+      console.log('PostForm: Sort changed to:', sortBy);
+      this.sortBy = sortBy;
+      this.fetchPosts();
+    },
+
+    resetSearch() {
+      this.searchActive = false;
+    },
+
+    // Post Expansion Methods
     async togglePostExpand(postId) {
       if (this.expandedPostId === postId) {
         this.closeExpandedPost();
       } else {
         this.expandedPostId = postId;
-        this.meaningMode = false;
         this.selectedWord = "";
         await this.fetchComments(postId);
+
+        // Smooth scroll to top on mobile when post is expanded
+        this.$nextTick(() => {
+          if (window.innerWidth <= 768) {
+            const expandedPost = document.querySelector('.expanded-post-column');
+            if (expandedPost) {
+              expandedPost.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+              });
+            }
+          }
+        });
       }
     },
 
-    // Aizvert pilnīgi atvērtu publikāciju
     closeExpandedPost() {
       this.expandedPostId = null;
-      this.meaningMode = false;
       this.selectedWord = "";
+      this.currentLookupPostId = null;
     },
 
-    // Publikāciju saņēmšana 
-    async fetchComments(postId) {
-      try {
-        const res = await axios.get(`/posts/${postId}/comments`);
-        const post = this.posts.find(p => p.id === postId);
-        if (post) {
-          post.comments = res.data;
-        }
-      } catch (error) {
-        console.error("Failed to fetch comments:", error);
-      }
-    },
-
-    // Komentāru pievienošana 
-    async addComment(postId) {
-      if (!this.newCommentContent.trim()) return;
-      try {
-        await axios.post(`/posts/${postId}/comments`, {
-          content: this.newCommentContent
-        });
-        this.newCommentContent = "";
-        await this.fetchComments(postId);
-      } catch (error) {
-        console.error("Failed to add comment:", error);
-      }
-    },
-
-    // Komentāru dzēšana
-    async deleteComment(commentId, postId) {
-      try {
-        await axios.delete(`/comments/${commentId}`);
-        await this.fetchComments(postId);
-      } catch (error) {
-        console.error("Failed to delete comment:", error);
+    // Dictionary Methods
+    handleMeaningModeChanged(data) {
+      // data should contain { mode: boolean, postId: number }
+      if (data.postId) {
+        this.postMeaningModes[data.postId] = data.mode;
       }
     },
 
     tokenizeContent(text) {
       if (!text) return [];
-
       const tokens = [];
       const regex = /(\S+|\s+)/g;
       let match;
-
       while ((match = regex.exec(text)) !== null) {
         tokens.push(match[0]);
       }
-
       return tokens;
     },
 
@@ -483,58 +301,145 @@ export default {
       return clean.trim();
     },
 
-    toggleMeaningMode() {
-      this.meaningMode = !this.meaningMode;
-      this.selectedWord = "";
-      this.wordMeaningData = "";
-      this.isLoadingMeaning = false;
-      this.meaningExpanded = false;
-      this.currentLookupPostId = null;
+    handleWordSelected(data) {
+      this.selectedWord = data.word;
+      this.currentLookupPostId = data.postId;
     },
 
-    async selectWordForMeaning(word, postId) {
-      if (!this.meaningMode) return;
-
-      const clean = this.cleanWord(word);
-      if (!clean) return;
-
-      this.selectedWord = clean;
-      this.currentLookupPostId = postId;
-      this.isLoadingMeaning = true;
-      this.wordMeaningData = "";
-      this.meaningExpanded = true;
-
+    // Comments Methods
+    async fetchComments(postId) {
       try {
-        const res = await axios.get(`/lingvanex/lookup?word=${encodeURIComponent(clean)}`);
-        const def = res.data?.definition;
-        this.wordMeaningData = def && def.trim().length ? def : 'Definīcija nav atrasta.';
-      } catch (e) {
-        console.error(e);
-        this.wordMeaningData = 'Kļūda meklējot definīciju.';
-      } finally {
-        this.isLoadingMeaning = false;
+        const res = await axios.get(`/posts/${postId}/comments`);
+        const post = this.posts.find(p => p.id === postId);
+        if (post) {
+          post.comments = res.data;
+        }
+      } catch (error) {
+        console.error("Failed to fetch comments:", error);
       }
     },
 
-    toggleMeaningExpanded() {
-      this.meaningExpanded = !this.meaningExpanded;
+    async handleAddComment(postId, content) {
+      try {
+        await axios.post(`/posts/${postId}/comments`, { content });
+        await this.fetchComments(postId);
+      } catch (error) {
+        console.error("Failed to add comment:", error);
+      }
     },
 
-    highlight(text) {
-      if (!this.searchActive || !this.searchQuery) return text;
-      const esc = this.searchQuery.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-      return text.replace(new RegExp(`(${esc})`, "gi"), "<mark>$1</mark>");
+    async handleDeleteComment(commentId, postId) {
+      try {
+        await axios.delete(`/comments/${commentId}`);
+        await this.fetchComments(postId);
+      } catch (error) {
+        console.error("Failed to delete comment:", error);
+      }
     },
 
-    truncateContent(text) {
-      if (!text) return "";
-      if (text.length <= 100) return text;
-      let segment = text.slice(0, 100);
-      const lastSpace = segment.lastIndexOf(" ");
-      if (lastSpace > 0) segment = segment.slice(0, lastSpace);
-      return segment + "...";
+    // Posts Methods
+    async fetchPosts() {
+      try {
+        const token = ++this.lastFetchToken;
+        this.isLoadingPosts = true;
+
+        let url = "/posts";
+        const params = [];
+        if (this.selectedCategories.length) {
+          this.selectedCategories.forEach(id => params.push(`category_ids[]=${id}`));
+        }
+        if (this.sortBy === "date") params.push(`sort=date`);
+        if (this.sortBy === "reactions") params.push(`sort=reactions`);
+        if (params.length) url += "?" + params.join("&");
+
+        console.log('PostForm: Fetching posts with URL:', url, 'sortBy:', this.sortBy);
+
+        const response = await axios.get(url);
+        let fetched = response.data;
+
+        console.log('PostForm: Received posts:', fetched.length, 'posts');
+        if (fetched.length > 0) {
+          console.log('PostForm: First few posts reaction counts:',
+            fetched.slice(0, 3).map(p => ({
+              id: p.id,
+              title: p.title.substring(0, 30),
+              reactions: p.reactionCounts,
+              total: (p.reactionCounts?.like || 0) + (p.reactionCounts?.dislike || 0) + (p.reactionCounts?.heart || 0)
+            }))
+          );
+        }
+
+        // Backend now includes reaction counts, no need for individual API calls!
+        // Reaction counts are already in post.reactionCounts
+
+        // Apply search filter
+        if (this.searchActive && this.searchQuery.trim()) {
+          const q = this.searchQuery.trim().toLowerCase();
+          fetched = fetched.filter(p =>
+            p.title.toLowerCase().includes(q) ||
+            p.content.toLowerCase().includes(q)
+          );
+          console.log('PostForm: Applied search filter, filtered to:', fetched.length, 'posts');
+        }
+
+        if (this.lastFetchToken !== token) return;
+
+        this.posts = fetched;
+        this.isLoadingPosts = false;
+      } catch (e) {
+        this.isLoadingPosts = false;
+        console.error(e);
+      }
     },
 
+    async deletePost(postId) {
+      try {
+        await axios.delete(`/posts/${postId}`);
+        this.resetSearch();
+        await this.fetchPosts();
+        if (this.expandedPostId === postId) {
+          this.closeExpandedPost();
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    },
+
+    async addReaction(type, postId) {
+      if (!this.isLoggedIn) {
+        alert("Log in to add reaction");
+        return;
+      }
+      try {
+        await axios.post(`/posts/${postId}/reactions`, { type });
+        this.resetSearch();
+        await this.fetchPosts();
+      } catch (e) {
+        console.error(e);
+      }
+    },
+
+    // Authentication Methods
+    async checkLoginStatus() {
+      try {
+        const res = await axios.get("/user");
+        this.isLoggedIn = !!res.data;
+        if (this.isLoggedIn) {
+          this.currentUserId = res.data.id;
+          this.isAdmin = res.data.is_admin;
+        }
+      } catch {}
+    },
+
+    // Categories Methods
+    async fetchCategories() {
+      try {
+        const res = await axios.get("/categories");
+        this.categories = res.data;
+      } catch {}
+    },
+
+    // Post Creation/Editing Methods
     handleImageUpload(e) {
       this.imageFile = e.target.files[0];
       if (this.editingPost && this.imageFile) {
@@ -552,9 +457,11 @@ export default {
       fd.append("content", this.post.content);
       this.post.category_ids.forEach(id => fd.append("category_ids[]", id));
       if (this.imageFile) fd.append("image", this.imageFile);
+
       const res = await axios.post("/posts", fd, {
         headers: { "Content-Type": "multipart/form-data" }
       });
+
       this.message = res.data.message;
       this.resetSearch();
       await this.fetchPosts();
@@ -563,92 +470,6 @@ export default {
       this.post.category_ids = [];
       this.imageFile = null;
       this.$refs.fileInput.value = "";
-    },
-
-    async fetchPosts() {
-      try {
-        const token = ++this.lastFetchToken;
-        this.isLoadingPosts = true;
-
-        let url = "/posts";
-        const params = [];
-        if (this.selectedCategories.length) {
-          this.selectedCategories.forEach(id => params.push(`category_ids[]=${id}`));
-        }
-        if (this.sortBy === "date") params.push(`sort=date`);
-        if (params.length) url += "?" + params.join("&");
-        const response = await axios.get(url);
-        let fetched = response.data;
-        for (let post of fetched) {
-          const reactionRes = await axios.get(`/posts/${post.id}/reactions`);
-          post.reactionCounts = reactionRes.data || { like: 0, dislike: 0, heart: 0 };
-        }
-        if (this.sortBy === "reactions") {
-          fetched.sort((a, b) => {
-            const sum = p => (p.reactionCounts.like || 0) + (p.reactionCounts.dislike || 0) + (p.reactionCounts.heart || 0);
-            return sum(b) - sum(a);
-          });
-        }
-        if (this.searchActive && this.searchQuery.trim()) {
-          const q = this.searchQuery.trim().toLowerCase();
-          fetched = fetched.filter(p => p.title.toLowerCase().includes(q) || p.content.toLowerCase().includes(q));
-        }
-        if (this.lastFetchToken !== token) {
-          return;
-        }
-        this.posts = fetched;
-        this.isLoadingPosts = false;
-      } catch (e) {
-        this.isLoadingPosts = false;
-        console.error(e);
-      }
-    },
-    
-    // Pārbauda lietotāja pieteikšanās statusu
-    async checkLoginStatus() {
-      try {
-        const res = await axios.get("/user");
-        this.isLoggedIn = !!res.data;
-        if (this.isLoggedIn) {
-          this.currentUserId = res.data.id;
-          this.isAdmin = res.data.is_admin;
-        }
-      } catch {}
-    },
-
-    async deletePost(postId) {
-      try {
-        await axios.delete(`/posts/${postId}`);
-        this.resetSearch();
-        await this.fetchPosts();
-        if (this.expandedPostId === postId) {
-          this.closeExpandedPost();
-        }
-      } catch (e) {
-        console.error(e);
-      }
-    },
-
-    // Reakciju pievienošanas funkcija
-    async addReaction(type, postId) {
-      if (!this.isLoggedIn) {
-        alert("Log in to add reaction");
-        return;
-      }
-      try {
-        await axios.post(`/posts/${postId}/reactions`, { type });
-        this.resetSearch();
-        await this.fetchPosts();
-      } catch (e) {
-        console.error(e);
-      }
-    },
-
-    async fetchCategories() {
-      try {
-        const res = await axios.get("/categories");
-        this.categories = res.data;
-      } catch {}
     },
 
     startEdit(post) {
@@ -675,11 +496,11 @@ export default {
         this.editingPost.category_ids.forEach(id => fd.append("category_ids[]", id));
         if (this.imageFile) fd.append("image", this.imageFile);
         fd.append("_method", "PUT");
-        await axios.post(
-          `/posts/${this.editingPost.id}`,
-          fd,
-          { headers: { "Content-Type": "multipart/form-data" } }
-        );
+
+        await axios.post(`/posts/${this.editingPost.id}`, fd, {
+          headers: { "Content-Type": "multipart/form-data" }
+        });
+
         this.cancelEdit();
         this.resetSearch();
         await this.fetchPosts();
@@ -687,20 +508,13 @@ export default {
         console.error("Update failed:", e.response || e);
         alert("Sorry, something went wrong while saving your changes.");
       }
-    },
-
-    searchPosts() {
-      this.searchActive = true;
-      this.fetchPosts();
-    },
-
-    resetSearch() {
-      this.searchActive = false;
     }
   },
+
   async mounted() {
     await this.checkLoginStatus();
     await this.fetchCategories();
+
     if (this.filterCategoryName) {
       const name = this.filterCategoryName.toLowerCase();
       const match = this.categories.find(c => c.name.toLowerCase() === name);
@@ -708,12 +522,54 @@ export default {
         this.selectedCategories = [match.id];
       }
     }
+
     await this.fetchPosts();
   }
 };
 </script>
 
 <style scoped>
+/* CSS Variables for Light and Dark Mode */
+:root {
+  --post-bg: #ffffff;
+  --post-text: #2c3e50;
+  --post-border: #e0e0e0;
+  --input-bg: #ffffff;
+  --input-border: #d1d5db;
+}
+
+/* Light mode (default) */
+.post-form {
+  --post-bg: #ffffff;
+  --post-text: #2c3e50;
+  --post-border: #e0e0e0;
+  --input-bg: #ffffff;
+  --input-border: #d1d5db;
+}
+
+/* Dark mode CSS variables - matches system preference */
+@media (prefers-color-scheme: dark) {
+  .post-form {
+    --post-bg: #1f2937;
+    --post-text: #d1d5db;
+    --post-border: #374151;
+    --input-bg: #273449;
+    --input-border: #4b5563;
+  }
+}
+
+/* Class-based dark mode support - matches main app.css */
+body.dark .post-form,
+body.dark-mode .post-form,
+.dark .post-form {
+  --post-bg: #1f2937;
+  --post-text: #d1d5db;
+  --post-border: #374151;
+  --input-bg: #273449;
+  --input-border: #4b5563;
+}
+
+/* Main layout styles */
 .posts-layout {
   display: flex;
   gap: 20px;
@@ -736,58 +592,19 @@ export default {
   top: 20px;
   max-height: calc(100vh - 40px);
   overflow-y: auto;
+  transition: all 0.3s ease;
+  animation: slideIn 0.3s ease-out;
 }
 
-.expanded-post-card {
-  background: var(--post-bg);
-  border: 1px solid var(--post-border);
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-}
-
-.expanded-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px 20px;
-  background: var(--input-bg);
-  border-bottom: 1px solid var(--post-border);
-}
-
-.expanded-header h3 {
-  margin: 0;
-  font-size: 18px;
-  color: var(--post-text);
-}
-
-.close-expanded {
-  background: none;
-  border: none;
-  font-size: 24px;
-  cursor: pointer;
-  color: var(--post-text);
-  padding: 0;
-  width: 30px;
-  height: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 4px;
-}
-
-.close-expanded:hover {
-  background: rgba(0, 0, 0, 0.1);
-}
-
-.expanded-content {
-  padding: 0;
-}
-
-.post-container {
-  max-width: 100%;
-  margin: 0 auto;
-  box-sizing: border-box;
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .post-row {
@@ -797,96 +614,57 @@ export default {
   justify-content: center;
 }
 
-@media (max-width: 768px) {
-  .posts-layout {
-    flex-direction: column;
-  }
-
-  .posts-grid-column.with-expanded,
-  .expanded-post-column {
-    flex: 1;
-    max-width: 100%;
-    position: static;
-  }
-
-  .post-row {
-    grid-template-columns: 1fr;
-  }
-}
-
-.post {
-  padding: 16px;
-  background-color: var(--post-bg);
-  border: 1px solid var(--post-border);
-  border-radius: 5px;
-  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.1);
-  font-size: 14px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
+/* Post card styles */
+.expanded-post-card {
+  background: var(--post-bg);
   color: var(--post-text);
-  transition: all 0.3s ease;
-  position: relative;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   overflow: hidden;
+  border: 1px solid var(--post-border);
 }
 
-.post-active {
-  border-color: #2563eb;
-  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.2);
+.expanded-header {
+  background: var(--input-bg);
+  padding: 15px 20px;
+  border-bottom: 1px solid var(--post-border);
+  display: flex;
+  justify-content: between;
+  align-items: center;
 }
 
-.post-image-container {
-  margin: 8px 0;
-  text-align: center;
-}
-
-.post-uploaded-image {
-  max-width: 100%;
-  max-height: 200px;
-  width: auto;
-  height: auto;
-  object-fit: contain;
-  border-radius: 4px;
+.close-expanded {
+  background: none;
+  border: none;
+  font-size: 24px;
   cursor: pointer;
-  transition: transform 0.2s ease;
+  color: var(--post-text);
+  opacity: 0.7;
+  padding: 0;
+  margin-left: auto;
+  transition: opacity 0.2s ease;
 }
 
-.post-uploaded-image:hover {
-  transform: scale(1.02);
+.close-expanded:hover {
+  opacity: 1;
 }
 
-.expanded-image-container {
-  margin: 16px 0;
-  text-align: center;
-}
-
-.expanded-post-image {
-  max-width: 100%;
-  max-height: 300px;
-  width: auto;
-  height: auto;
-  object-fit: contain;
-  border-radius: 6px;
-}
-
-.expanded-post-content {
+.expanded-content {
   padding: 20px;
 }
 
 .expanded-post-title {
-  font-family: "AbrilFatface";
-  font-size: 24px;
-  margin-bottom: 12px;
+  font-size: 1.5em;
+  margin: 0 0 10px 0;
   color: var(--post-text);
-  line-height: 1.3;
 }
 
 .post-meta {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
-  padding-bottom: 12px;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
   border-bottom: 1px solid var(--post-border);
 }
 
@@ -896,706 +674,600 @@ export default {
   gap: 8px;
 }
 
+.profile-photo-post {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
 .author-name {
   font-weight: 600;
   color: var(--post-text);
 }
 
-.post-full-content {
-  font-size: 15px;
-  line-height: 1.6;
-  margin-bottom: 20px;
-  color: var(--post-text);
-  white-space: normal;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-  text-align: left;
-}
-
-.meaning-mode-text {
-  font-family: inherit;
-  font-size: 15px;
-  line-height: 1.6;
-  color: var(--post-text);
-  white-space: normal;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-  text-align: left;
-}
-
-.clickable-word {
-  cursor: pointer;
-  padding: 1px 2px;
-  border-radius: 3px;
-  transition: all 0.2s ease;
-  border-bottom: 1px dotted transparent;
-  color: var(--post-text);
-  display: inline;
-  white-space: normal;
-}
-
-.clickable-word:hover {
-  background-color: rgba(37, 99, 235, 0.08);
-  border-bottom-color: #2563eb;
-}
-
-.clickable-word.active-word {
-  background-color: rgba(37, 99, 235, 0.15);
-  border-bottom-color: #2563eb;
-  font-weight: 500;
-}
-
-.non-clickable {
-  display: inline;
-  white-space: normal;
-}
-
-.comments-section {
-  background-color: var(--input-bg);
-  border-radius: 8px;
-  padding: 20px;
-  margin-top: 20px;
-}
-
-.section-title {
-  font-family: "Aileron";
-  font-size: 18px;
-  margin-bottom: 16px;
-  color: var(--post-text);
-  border-bottom: 1px solid var(--post-border);
-  padding-bottom: 8px;
-}
-
-.comments-list {
-  max-height: 400px;
-  overflow-y: auto;
-  margin-bottom: 20px;
-}
-
-.comment-item {
-  background-color: var(--post-bg);
-  border-radius: 6px;
-  padding: 12px;
-  margin-bottom: 12px;
-  border: 1px solid var(--post-border);
-}
-
-.comment-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 8px;
-}
-
-.comment-author {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.profile-photo-post {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  object-fit: cover;
-}
-
-.comment-profile-photo {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  object-fit: cover;
-}
-
-.comment-header strong {
-  font-size: 13px;
-  color: var(--post-text);
-}
-
-.comment-date {
-  font-size: 11px;
+.post-date {
   color: var(--post-text);
   opacity: 0.7;
+  font-size: 0.9em;
 }
 
-.comment-content-wrapper {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 10px;
+.expanded-image-container {
+  margin: 15px 0;
 }
 
-.comment-content {
-  font-size: 13px;
-  line-height: 1.4;
-  color: var(--post-text);
-  margin: 0;
-  flex: 1;
-}
-
-.comments-delete .delete {
-  cursor: pointer;
-  font-size: 16px;
-  color: #999;
-  padding: 2px 6px;
-  border-radius: 3px;
-  transition: all 0.2s ease;
-}
-
-.comments-delete .delete:hover {
-  color: #e74c3c;
-  background-color: rgba(231, 76, 60, 0.1);
-}
-
-.no-comments {
-  text-align: center;
-  padding: 20px;
-  color: var(--post-text);
-  opacity: 0.7;
-  font-style: italic;
-}
-
-.add-comment {
-  margin-top: 20px;
-}
-
-.add-comment textarea {
+.expanded-post-image {
   width: 100%;
-  height: 80px;
-  padding: 12px;
-  border: 1px solid var(--post-border);
-  border-radius: 6px;
-  background-color: var(--post-bg);
-  color: var(--post-text);
-  font-family: "Aileron";
-  font-size: 13px;
-  resize: vertical;
-  margin-bottom: 10px;
-  transition: border-color 0.3s ease;
+  max-height: 400px;
+  object-fit: cover;
+  border-radius: 8px;
 }
 
-.add-comment textarea:focus {
-  outline: none;
-  border-color: #2563eb;
+.post-full-content {
+  margin: 15px 0;
+  line-height: 1.6;
 }
 
-.add-comment button {
-  background-color: #2563eb;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 6px;
-  font-family: "Aileron";
-  font-size: 14px;
+.meaning-mode-text .clickable-word {
   cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-.add-comment button:hover {
-  background-color: #1e40af;
-}
-
-.login-note {
-  text-align: center;
-  padding: 20px;
-  color: var(--post-text);
-  opacity: 0.7;
-  font-style: italic;
-  border: 1px dashed var(--post-border);
-  border-radius: 6px;
-}
-
-.post-buttons {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-top: 8px;
-}
-
-.btn-delete {
-  background-color: transparent;
-  border: 1px solid #e74c3c;
-  color: #e74c3c;
-  border-radius: 4px;
-  padding: 4px 8px;
-  font-size: 12px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.btn-delete:hover {
-  background-color: rgba(231, 76, 60, 0.1);
-}
-
-.btn-edit {
-  background-color: transparent;
-  border: 1px solid #3498db;
-  color: #3498db;
-  border-radius: 4px;
-  padding: 4px 8px;
-  font-size: 12px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.btn-edit:hover {
-  background-color: rgba(52, 152, 219, 0.1);
-}
-
-.open-post-btn {
-  background-color: #333;
-  color: #fff;
-  border: none;
-  border-radius: 4px;
-  padding: 6px 12px;
-  font-size: 13px;
-  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 3px;
   transition: background-color 0.2s;
 }
 
-.open-post-btn:hover {
-  background-color: #555;
+.meaning-mode-text .clickable-word:hover {
+  background-color: #e3f2fd;
 }
 
-.reaction-icons {
-  display: flex;
-  gap: 8px;
-  margin: 8px 0;
-}
-
-.reaction-icons button {
-  background: none;
-  border: none;
-  font-size: 1.2rem;
-  cursor: pointer;
-  color: var(--post-text);
-}
-
-.btn-meaning {
-  background-color: transparent;
-  border: 1px solid #2563eb;
-  color: #2563eb;
-  padding: 8px 16px;
-  border-radius: 6px;
-  font-family: "Aileron";
-  font-size: 13px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  margin-bottom: 16px;
-}
-
-.btn-meaning:hover {
-  background-color: #2563eb;
+.meaning-mode-text .active-word {
+  background-color: #2196f3;
   color: white;
 }
 
-.meaning-section {
-  background-color: var(--post-bg);
-  border: 1px solid var(--post-border);
-  border-radius: 8px;
-  overflow: hidden;
-  margin-top: 16px;
+/* Dark mode enhanced styles for dictionary mode */
+@media (prefers-color-scheme: dark) {
+  .meaning-mode-text .clickable-word:hover {
+    background-color: rgba(100, 181, 246, 0.2);
+  }
 }
 
-.meaning-header {
-  background-color: rgba(37, 99, 235, 0.05);
-  padding: 12px 16px;
-  cursor: pointer;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  transition: background-color 0.2s ease;
+body.dark .meaning-mode-text .clickable-word:hover,
+body.dark-mode .meaning-mode-text .clickable-word:hover,
+.dark .meaning-mode-text .clickable-word:hover {
+  background-color: rgba(100, 181, 246, 0.2);
 }
 
-.meaning-header:hover {
-  background-color: rgba(37, 99, 235, 0.1);
+/* Create post styles */
+.create-post-wrapper {
+  margin-top: 30px;
+  padding: 30px 20px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  border-top: 3px solid #2196f3;
 }
 
-.meaning-header h4 {
-  margin: 0;
-  font-size: 14px;
-  color: var(--post-text);
-  border: none;
-  padding: 0;
+.create-post-container {
+  background: white;
+  padding: 35px;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  max-width: 900px;
+  margin: 0 auto;
+  border: 1px solid #e3f2fd;
 }
 
-.expand-icon {
-  transition: transform 0.3s ease;
-  color: var(--post-text);
+.create-title {
+  color: #1565c0;
+  margin-bottom: 25px;
+  font-size: 1.8em;
+  font-weight: 700;
+  text-align: center;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.expand-icon.expanded {
-  transform: rotate(180deg);
+.create-post-container label {
+  display: block;
+  margin-top: 20px;
+  margin-bottom: 8px;
+  font-weight: 700;
+  color: #1565c0;
+  font-size: 1.1em;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-.meaning-content {
-  padding: 16px;
-  background-color: var(--input-bg);
-}
-
-.word-definition {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.word-title {
+.create-post-container input[type="text"],
+.create-post-container textarea {
+  width: 100%;
+  padding: 16px 20px;
+  border: 3px solid #e3f2fd;
+  border-radius: 12px;
   font-size: 16px;
-  color: #2563eb;
-  font-weight: 600;
-  font-family: "Aileron";
-}
-
-.definition-text {
-  font-size: 14px;
-  line-height: 1.5;
-  color: var(--post-text);
-  margin: 0;
-  padding: 12px;
-  background-color: var(--post-bg);
-  border-radius: 6px;
-  border-left: 3px solid #2563eb;
-}
-
-.meaning-expand-enter-active,
-.meaning-expand-leave-active {
+  font-family: inherit;
   transition: all 0.3s ease;
-  overflow: hidden;
-}
-.meaning-expand-enter-from,
-.meaning-expand-leave-to {
-  max-height: 0;
-  opacity: 0;
-}
-.meaning-expand-enter-to,
-.meaning-expand-leave-from {
-  max-height: 200px;
-  opacity: 1;
+  background: #fafafa;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06);
 }
 
-.filter-bar {
-  display: flex;
-  align-items: flex-start;
-  gap: 20px;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
-}
-.filter-left,
-.filter-center,
-.filter-right {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-.filter-left {
-  justify-content: flex-start;
-}
-.filter-center {
-  align-items: center;
-}
-.filter-right {
-  align-items: flex-end;
-}
-.filter-item {
-  background-color: var(--post-bg);
-  border: 1px solid var(--post-border);
-  border-radius: 5px;
-  padding: 12px;
-  box-shadow: none;
-  display: flex;
-  flex-direction: column;
-  color: var(--post-text);
-  transition: background-color 0.3s ease,
-  border-color 0.3s ease,
-  color 0.3s ease;
-}
-
-.search-box input {
-  padding: 8px;
-  border: none;
-  border-bottom: 2px solid var(--input-border);
-  background-color: var(--input-bg);
-  color: var(--post-text);
-  font-size: 14px;
-  width: 200px;
-  transition: background-color 0.3s ease,
-  border-color 0.3s ease,
-  color 0.3s ease;
-}
-.search-box input:focus {
+.create-post-container input[type="text"]:focus,
+.create-post-container textarea:focus {
   outline: none;
-  border-bottom-color: var(--input-border);
-}
-.search-btn {
-  padding: 4px 8px;
-  border: none;
-  background-color: var(--input-bg);
-  color: var(--post-text);
-  border-radius: 4px;
-  font-size: 12px;
-  cursor: pointer;
-  margin-top: 8px;
-  transition: filter 0.2s ease;
-}
-.search-btn:hover {
-  filter: brightness(1.1);
+  border-color: #2196f3;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1), inset 0 2px 4px rgba(0, 0, 0, 0.06);
+  transform: translateY(-1px);
 }
 
-.category-box {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
+.create-post-container textarea {
+  min-height: 140px;
+  resize: vertical;
+  line-height: 1.6;
 }
-.category-box > label {
-  font-family: "Aileron";
-  font-size: 16px;
-  margin-bottom: 6px;
-  color: var(--post-text);
+
+.create-categories-checkboxes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 15px;
+  margin: 15px 0 25px 0;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 12px;
+  border: 2px solid #e3f2fd;
 }
-.categories-checkboxes {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 24px;
-  font-family: "Aileron";
-  font-size: 14px;
-}
+
 .checkbox-item {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 2px;
-  background-color: transparent;
-}
-.category-checkbox {
-  width: 16px;
-  height: 16px;
-  cursor: pointer;
-}
-.category-label {
-  color: var(--post-text);
-  font-size: 14px;
-}
-.found-count {
-  margin-top: 8px;
-  font-size: 14px;
-  color: var(--post-text);
-}
-
-.sort-box {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-}
-.sort-box label {
-  font-size: 14px;
-  margin-bottom: 4px;
-  color: var(--post-text);
-}
-.sort-box select {
-  padding: 6px;
-  border: none;
-  border-bottom: 2px solid var(--input-border);
-  background-color: var(--input-bg);
-  color: var(--post-text);
-  font-size: 14px;
-  border-radius: 4px;
-  width: 150px;
-  transition: background-color 0.3s ease,
-  border-color 0.3s ease,
-  color 0.3s ease;
-}
-.sort-box select:focus {
-  outline: none;
-  border-bottom-color: var(--input-border);
-}
-
-.create-post-wrapper {
-  margin-top: 40px;
-  margin-bottom: 40px;
-  max-width: 500px;
-  margin-left: auto;
-  margin-right: auto;
-  padding: 20px;
-  background: transparent;
-  box-shadow: none;
-  border-radius: 8px;
-}
-.create-post-container {
-  font-family: "Aileron";
-}
-.create-post-container input,
-.create-post-container textarea {
-  width: 100%;
-  padding: 8px;
-  margin-top: 5px;
-  border: 1px solid var(--input-border);
-  border-radius: 4px;
-  font-size: 14px;
-  font-family: "Aileron";
-  background-color: var(--input-bg);
-  color: var(--post-text);
-  transition: background-color 0.3s ease,
-  border-color 0.3s ease,
-  color 0.3s ease;
-}
-.create-post-container button {
-  width: 100%;
-  padding: 12px;
-  border: none;
-  background-color: var(--input-bg);
-  color: var(--post-text);
-  border-radius: 5px;
-  margin-top: 20px;
-  cursor: pointer;
-  font-size: 16px;
-  font-family: "Aileron";
-  transition: filter 0.2s ease;
-}
-.create-post-container button:hover {
-  filter: brightness(1.1);
-}
-.create-post-container h2 {
-  font-family: "Aileron";
-  font-size: 35px;
-  text-align: center;
-  margin-bottom: 20px;
-  color: var(--post-text);
-}
-.success-message {
-  color: green;
-  margin-top: 10px;
-}
-
-.create-category-box {
-  background: transparent !important;
-  box-shadow: none !important;
-  padding: 0 !important;
-  margin-bottom: 12px;
-}
-.create-category-box > label {
-  font-family: "Aileron";
-  font-size: 16px;
-  margin-bottom: 4px;
-  color: var(--post-text);
-}
-.create-categories-checkboxes {
-  display: flex;
-  flex-wrap: wrap;
   gap: 12px;
-  font-family: "Aileron";
-  font-size: 14px;
-}
-.create-categories-checkboxes .checkbox-item {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 2px;
-  background-color: transparent;
-}
-.create-categories-checkboxes .category-checkbox {
-  width: 16px;
-  height: 16px;
   cursor: pointer;
-  flex-shrink: 0;
-  margin-right: 2px;
-}
-.create-categories-checkboxes .category-label {
-  color: var(--post-text);
-  font-size: 14px;
-  margin-left: 0;
-  white-space: nowrap;
+  padding: 8px 12px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  background: white;
+  border: 1px solid #dee2e6;
 }
 
-.edit-form-col {
-  flex: 1;
-  padding: 20px;
-  box-sizing: border-box;
-  overflow-y: auto;
+.checkbox-item:hover {
+  background: #e3f2fd;
+  border-color: #2196f3;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(33, 150, 243, 0.15);
 }
-.edit-form-col h3 {
-  margin-bottom: 12px;
-  color: var(--post-text);
+
+.category-checkbox {
+  width: 20px;
+  height: 20px;
+  accent-color: #2196f3;
 }
-.edit-form-col label {
-  display: block;
-  font-weight: bold;
-  margin-top: 10px;
+
+.category-label {
   font-size: 14px;
-  color: var(--post-text);
+  font-weight: 600;
+  color: #2c3e50;
 }
-.edit-form-col input,
-.edit-form-col textarea {
-  width: 100%;
-  padding: 8px;
-  margin-top: 5px;
-  border: 1px solid var(--input-border);
-  border-radius: 4px;
-  font-size: 14px;
-  font-family: "Aileron";
-  background-color: var(--input-bg);
-  color: var(--post-text);
-  transition: background-color 0.3s ease,
-  border-color 0.3s ease,
-  color 0.3s ease;
-}
-.buttons-row {
-  display: flex;
-  gap: 10px;
-  margin-top: 20px;
-}
-.buttons-row button {
-  flex: 1;
-  padding: 10px;
+
+.create-post-container button[type="submit"] {
+  background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
+  color: white;
+  padding: 18px 36px;
   border: none;
-  background-color: var(--input-bg);
-  color: var(--post-text);
-  border-radius: 4px;
+  border-radius: 12px;
+  font-size: 18px;
+  font-weight: 700;
   cursor: pointer;
-  font-size: 14px;
-  font-family: "Aileron";
-  transition: filter 0.2s ease;
-}
-.buttons-row button:hover {
-  filter: brightness(1.1);
-}
-.edit-preview-col {
-  flex: 1;
-  background-color: var(--input-bg);
-  padding: 20px;
-  box-sizing: border-box;
-  overflow-y: auto;
-}
-.edit-preview-col h3,
-.edit-preview-col h4,
-.edit-preview-col p {
-  color: var(--post-text);
-  margin-bottom: 12px;
-  font-family: "Aileron";
+  margin-top: 30px;
+  width: 100%;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);
 }
 
+.create-post-container button[type="submit"]:hover {
+  background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(33, 150, 243, 0.4);
+}
+
+.create-post-container button[type="submit"]:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);
+}
+
+.create-post-container input[type="file"] {
+  width: 100%;
+  padding: 16px 20px;
+  border: 3px dashed #2196f3;
+  border-radius: 12px;
+  background: #f8f9fa;
+  margin: 10px 0;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 16px;
+}
+
+.create-post-container input[type="file"]:hover {
+  background: #e3f2fd;
+  border-color: #1976d2;
+}
+
+.success-message {
+  color: #4caf50;
+  font-weight: 600;
+  margin-top: 20px;
+  padding: 15px;
+  background: #e8f5e8;
+  border: 2px solid #4caf50;
+  border-radius: 8px;
+  text-align: center;
+}
+
+/* Dark mode styles for create post section */
+@media (prefers-color-scheme: dark) {
+  .create-post-wrapper {
+    background: linear-gradient(135deg, #121622 0%, #1f2937 100%);
+    border-top: 3px solid #64b5f6;
+  }
+
+  .create-post-container {
+    background: #1f2937;
+    border: 1px solid #374151;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  }
+
+  .create-title {
+    color: #64b5f6;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  }
+
+  .create-post-container label {
+    color: #64b5f6;
+  }
+
+  .create-post-container input[type="text"],
+  .create-post-container textarea {
+    background: #273449;
+    border: 3px solid #374151;
+    color: #d1d5db;
+  }
+
+  .create-post-container input[type="text"]:focus,
+  .create-post-container textarea:focus {
+    border-color: #64b5f6;
+    background: #1f2937;
+    box-shadow: 0 0 0 3px rgba(100, 181, 246, 0.2), inset 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
+
+  .create-categories-checkboxes {
+    background: #273449;
+    border: 2px solid #374151;
+  }
+
+  .checkbox-item {
+    background: #1f2937;
+    border: 1px solid #4b5563;
+    color: #d1d5db;
+  }
+
+  .checkbox-item:hover {
+    background: #374151;
+    border-color: #64b5f6;
+    box-shadow: 0 2px 8px rgba(100, 181, 246, 0.25);
+  }
+
+  .category-label {
+    color: #d1d5db;
+  }
+
+  .create-post-container input[type="file"] {
+    background: #273449;
+    border: 3px dashed #64b5f6;
+    color: #d1d5db;
+  }
+
+  .create-post-container input[type="file"]:hover {
+    background: #1f2937;
+    border-color: #42a5f5;
+  }
+
+  .success-message {
+    background: #2e7d32;
+    border-color: #4caf50;
+    color: #ffffff;
+  }
+}
+
+/* Alternative class-based dark mode (matches app.css body.dark) */
+body.dark .create-post-wrapper,
+body.dark-mode .create-post-wrapper,
+.dark .create-post-wrapper {
+  background: linear-gradient(135deg, #121622 0%, #1f2937 100%);
+  border-top: 3px solid #64b5f6;
+}
+
+body.dark .create-post-container,
+body.dark-mode .create-post-container,
+.dark .create-post-container {
+  background: #1f2937;
+  border: 1px solid #374151;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+body.dark .create-title,
+body.dark-mode .create-title,
+.dark .create-title {
+  color: #64b5f6;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+body.dark .create-post-container label,
+body.dark-mode .create-post-container label,
+.dark .create-post-container label {
+  color: #64b5f6;
+}
+
+body.dark .create-post-container input[type="text"],
+body.dark .create-post-container textarea,
+body.dark-mode .create-post-container input[type="text"],
+body.dark-mode .create-post-container textarea,
+.dark .create-post-container input[type="text"],
+.dark .create-post-container textarea {
+  background: #273449;
+  border: 3px solid #374151;
+  color: #d1d5db;
+}
+
+body.dark .create-post-container input[type="text"]:focus,
+body.dark .create-post-container textarea:focus,
+body.dark-mode .create-post-container input[type="text"]:focus,
+body.dark-mode .create-post-container textarea:focus,
+.dark .create-post-container input[type="text"]:focus,
+.dark .create-post-container textarea:focus {
+  border-color: #64b5f6;
+  background: #1f2937;
+  box-shadow: 0 0 0 3px rgba(100, 181, 246, 0.2), inset 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+body.dark .create-categories-checkboxes,
+body.dark-mode .create-categories-checkboxes,
+.dark .create-categories-checkboxes {
+  background: #273449;
+  border: 2px solid #374151;
+}
+
+body.dark .checkbox-item,
+body.dark-mode .checkbox-item,
+.dark .checkbox-item {
+  background: #1f2937;
+  border: 1px solid #4b5563;
+  color: #d1d5db;
+}
+
+body.dark .checkbox-item:hover,
+body.dark-mode .checkbox-item:hover,
+.dark .checkbox-item:hover {
+  background: #374151;
+  border-color: #64b5f6;
+  box-shadow: 0 2px 8px rgba(100, 181, 246, 0.25);
+}
+
+body.dark .category-label,
+body.dark-mode .category-label,
+.dark .category-label {
+  color: #d1d5db;
+}
+
+body.dark .create-post-container input[type="file"],
+body.dark-mode .create-post-container input[type="file"],
+.dark .create-post-container input[type="file"] {
+  background: #273449;
+  border: 3px dashed #64b5f6;
+  color: #d1d5db;
+}
+
+body.dark .create-post-container input[type="file"]:hover,
+body.dark-mode .create-post-container input[type="file"]:hover,
+.dark .create-post-container input[type="file"]:hover {
+  background: #1f2937;
+  border-color: #42a5f5;
+}
+
+body.dark .success-message,
+body.dark-mode .success-message,
+.dark .success-message {
+  background: #2e7d32;
+  border-color: #4caf50;
+  color: #ffffff;
+}
+
+/* Modal styles */
 .modal {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100vw;
-  height: 100vh;
-  background-color: rgba(0, 0, 0, 0.7);
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
 }
-.modal-content.full-post-container {
-  background-color: var(--post-bg);
+
+.modal-content {
+  background: var(--post-bg);
   color: var(--post-text);
+  padding: 30px;
+  border-radius: 12px;
   max-width: 90%;
   max-height: 90%;
-  width: auto;
-  height: auto;
+  overflow-y: auto;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--post-border);
+}
+
+.full-post-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+  min-width: 800px;
+}
+
+.edit-form-col label {
+  display: block;
+  margin: 15px 0 5px 0;
+  font-weight: 600;
+  color: var(--post-text);
+}
+
+.edit-form-col input,
+.edit-form-col textarea {
+  width: 100%;
+  padding: 10px;
+  border: 2px solid var(--post-border);
+  border-radius: 6px;
+  font-size: 14px;
+  background: var(--input-bg);
+  color: var(--post-text);
+}
+
+.edit-form-col textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.buttons-row {
   display: flex;
-  flex-direction: row;
-  border-radius: 8px;
-  overflow: hidden;
-  box-sizing: border-box;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.buttons-row button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.buttons-row button:first-child {
+  background: #4caf50;
+  color: white;
+}
+
+.buttons-row button:first-child:hover {
+  background: #45a049;
+}
+
+.buttons-row button:last-child {
+  background: #f44336;
+  color: white;
+}
+
+.buttons-row button:last-child:hover {
+  background: #da190b;
+}
+
+.edit-preview-col h3 {
+  margin-top: 0;
+  color: var(--post-text);
+}
+
+.edit-preview-col h4 {
+  color: var(--post-text);
+  margin-bottom: 10px;
+}
+
+.edit-preview-col p {
+  line-height: 1.6;
+  color: var(--post-text);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .posts-layout {
+    flex-direction: column;
+  }
+
+  .posts-grid-column.with-expanded {
+    flex: 1;
+    max-width: 100%;
+    order: 2; /* Move posts below expanded post on mobile */
+  }
+
+  .expanded-post-column {
+    position: static;
+    max-height: none;
+    margin: 10px 0;
+    order: 1; /* Show expanded post first on mobile */
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .expanded-post-card {
+    border-radius: 12px;
+    margin: 0;
+  }
+
+  .expanded-header {
+    background: var(--post-bg);
+    padding: 15px 20px;
+    border-bottom: 1px solid var(--post-border);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  .expanded-header h3 {
+    margin: 0;
+    font-size: 18px;
+    color: var(--post-text);
+  }
+
+  .close-expanded {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: var(--button-bg);
+    color: var(--button-text);
+    border: none;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .expanded-content {
+    max-height: 70vh;
+    overflow-y: auto;
+    background: var(--post-bg);
+  }
+
+  .post-row {
+    grid-template-columns: 1fr;
+  }
+
+  .full-post-container {
+    grid-template-columns: 1fr;
+    min-width: auto;
+    gap: 20px;
+  }
+
+  /* Hide other posts when one is expanded on mobile */
+  .posts-grid-column.with-expanded .post-row {
+    opacity: 0.6;
+    margin-top: 20px;
+    transition: opacity 0.3s ease;
+  }
+
+  .posts-grid-column.with-expanded {
+    transition: all 0.3s ease;
+  }
 }
 </style>

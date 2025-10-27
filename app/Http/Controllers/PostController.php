@@ -10,8 +10,19 @@ class PostController extends Controller
 {
     public function index(Request $request)
     {
-        // Lietotājs, kategorijas, reakcijas tabulu apvienošana
-        $query = Post::with(['user','categories','reactions']);
+        // Lietotājs, kategorijas, reakcijas tabulu apvienošana ar reaction counts
+        $query = Post::with(['user', 'categories'])
+            ->withCount([
+                'reactions as like_count' => function ($query) {
+                    $query->where('type', 'like');
+                },
+                'reactions as dislike_count' => function ($query) {
+                    $query->where('type', 'dislike');
+                },
+                'reactions as heart_count' => function ($query) {
+                    $query->where('type', 'heart');
+                }
+            ]);
 
         if ($request->filled('user_id')) {
             $query->where('user_id', $request->user_id);
@@ -33,7 +44,31 @@ class PostController extends Controller
             );
         }
 
-        $posts = $query->latest()->get();
+        // Sort by reactions if requested
+        if ($request->get('sort') === 'reactions') {
+            \Log::info('PostController: Sorting by reactions');
+            $query->orderByRaw('(like_count + dislike_count + heart_count) DESC');
+        } elseif ($request->get('sort') === 'date') {
+            \Log::info('PostController: Sorting by date');
+            $query->latest(); // Sort by created_at DESC (newest first)
+        } else {
+            \Log::info('PostController: Default sorting (latest)');
+            $query->latest(); // Default sorting
+        }
+
+        $posts = $query->get();
+
+        \Log::info('PostController: Retrieved ' . $posts->count() . ' posts with sort: ' . $request->get('sort', 'default'));
+
+        // Transform reaction counts for frontend compatibility
+        $posts->transform(function ($post) {
+            $post->reactionCounts = [
+                'like' => $post->like_count ?? 0,
+                'dislike' => $post->dislike_count ?? 0,
+                'heart' => $post->heart_count ?? 0,
+            ];
+            return $post;
+        });
 
         return response()->json($posts);
     }
