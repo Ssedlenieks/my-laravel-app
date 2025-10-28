@@ -645,7 +645,6 @@ button:disabled {
     cursor: pointer;
     font-size: 15px;
     display: block;
-    transition: background-color 0.2s;
 }
 
 .admin-panel-box {
