@@ -545,10 +545,6 @@ button {
     margin: 8px 6px 0 0;
 }
 
-button:hover:not(:disabled) {
-    background-color: var(--input-bg);
-}
-
 button:disabled {
     opacity: 0.5;
     cursor: not-allowed;
