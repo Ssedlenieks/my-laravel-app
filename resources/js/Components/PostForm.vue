@@ -430,7 +430,7 @@ export default {
 
     async addReaction(type, postId) {
       if (!this.isLoggedIn) {
-        alert("Log in to add reaction");
+        alert("Lai reaģētu uz publikāciju, lūdzu, pierakstieties.");
         return;
       }
       try {
