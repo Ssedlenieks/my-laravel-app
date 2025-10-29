@@ -11,7 +11,7 @@
           @click="$emit('expand-post', post.id)"
         />
       </div>
-
+      
       <div class="user-name">
         <div class="author-info">
           <img

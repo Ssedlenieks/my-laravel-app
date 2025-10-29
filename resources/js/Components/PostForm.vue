@@ -555,7 +555,6 @@ export default {
   --input-border: #d1d5db;
 }
 
-/* Dark mode support - matches body.dark from navbar toggle */
 body.dark .post-form,
 body.dark-mode .post-form {
   --post-bg: #1f2937;
@@ -565,7 +564,6 @@ body.dark-mode .post-form {
   --input-border: #4b5563;
 }
 
-/* Class-based dark mode support - matches main app.css */
 body.dark .post-form,
 body.dark-mode .post-form,
 .dark .post-form {
@@ -576,7 +574,6 @@ body.dark-mode .post-form,
   --input-border: #4b5563;
 }
 
-/* Main layout styles */
 .posts-layout {
   display: flex;
   gap: 20px;
@@ -621,7 +618,6 @@ body.dark-mode .post-form,
   justify-content: center;
 }
 
-/* Post card styles */
 .expanded-post-card {
   background: var(--post-bg);
   color: var(--post-text);
@@ -731,14 +727,12 @@ body.dark-mode .post-form,
   color: white;
 }
 
-/* Dark mode enhanced styles for dictionary mode */
 body.dark .meaning-mode-text .clickable-word:hover,
 body.dark-mode .meaning-mode-text .clickable-word:hover,
 .dark .meaning-mode-text .clickable-word:hover {
   background-color: rgba(100, 181, 246, 0.2);
 }
 
-/* Create post styles */
 .create-post-wrapper {
   margin-top: 30px;
   padding: 30px 20px;
@@ -1005,7 +999,6 @@ body.dark-mode .success-message,
   color: #ffffff;
 }
 
-/* Modal styles */
 .modal {
   position: fixed;
   top: 0;
@@ -1116,7 +1109,6 @@ body.dark-mode .success-message,
   }
 
   .expanded-post-column {
-    /* Force it to appear at the top */
     order: -1;
     position: static;
     max-height: none;
@@ -1189,7 +1181,6 @@ body.dark-mode .success-message,
     gap: 20px;
   }
 
-  /* Hide other posts when one is expanded on mobile */
   .posts-grid-column.with-expanded .post-row {
     opacity: 0.6;
     margin-top: 20px;
