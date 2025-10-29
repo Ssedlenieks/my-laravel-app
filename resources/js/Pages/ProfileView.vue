@@ -1,11 +1,12 @@
 <template>
+    <!-- Profila sadaļa -->
     <div class="profile">
         <h1>Jūsu profils</h1>
 
         <div class="avatar">
             <img :src="user.profile_photo_url" alt="Avatar" />
         </div>
-
+<!-- Lietotāja informācija -->
         <div class="profile-info">
             <div class="info-item">
                 <label>Lietotājvārds:</label>
@@ -32,7 +33,7 @@
         <button @click="editProfile">Rediģēt profilu</button>
         <button @click="goHome">Uz sākumlapu</button>
         <button @click="logout">Iziet</button>
-
+<!-- Profila rediģēšanas forma -->
         <transition name="fade">
             <div v-if="isEditing" class="edit-form">
                 <h2>Rediģēt profilu</h2>
@@ -73,7 +74,7 @@
                 {{ message }}
             </div>
         </transition>
-
+        <!-- Administratora panelis -->
         <button v-if="isAdmin" @click="toggleUserPanel" class="admin-toggle">
             {{ showUsers ? 'Paslēpt administratora paneli' : 'Rādīt administratora paneli' }}
         </button>
@@ -81,50 +82,50 @@
         <transition name="fade">
             <div v-if="showUsers" class="admin-panel-box">
                 <h2>Administratora panelis</h2>
-                
+                <!--Lietotāja pievienošana-->
                 <div class="add-user-section">
                     <h3>Pievienot jaunu lietotāju</h3>
                     <div class="input-group">
                         <label for="new-username">Lietotājvārds</label>
-                        <input 
-                            v-model="newUser.username" 
-                            type="text" 
-                            id="new-username" 
+                        <input
+                            v-model="newUser.username"
+                            type="text"
+                            id="new-username"
                             placeholder="7 rakstzīmes"
                         />
                         <p v-if="newUserUsernameError" class="error-text">{{ newUserUsernameError }}</p>
                     </div>
                     <div class="input-group">
                         <label for="new-email">E-pasts</label>
-                        <input 
-                            v-model="newUser.email" 
-                            type="email" 
-                            id="new-email" 
+                        <input
+                            v-model="newUser.email"
+                            type="email"
+                            id="new-email"
                             placeholder="user@example.com"
                         />
                         <p v-if="newUserEmailError" class="error-text">{{ newUserEmailError }}</p>
                     </div>
                     <div class="input-group">
                         <label for="new-password">Parole</label>
-                        <input 
-                            v-model="newUser.password" 
-                            type="password" 
-                            id="new-password" 
+                        <input
+                            v-model="newUser.password"
+                            type="password"
+                            id="new-password"
                             placeholder="8 rakstzīmes (cipars, spec. simbols)"
                         />
                         <p v-if="newUserPasswordError" class="error-text">{{ newUserPasswordError }}</p>
                     </div>
                     <div class="input-group checkbox-group">
                         <label>
-                            <input 
-                                v-model="newUser.is_admin" 
+                            <input
+                                v-model="newUser.is_admin"
                                 type="checkbox"
                             />
                             Padarīt šo lietotāju par administratoru
                         </label>
                     </div>
-                    <button 
-                        @click="addNewUser" 
+                    <button
+                        @click="addNewUser"
                         :disabled="!newUserFormIsValid"
                         class="btn-add"
                     >
@@ -133,7 +134,7 @@
                 </div>
 
                 <hr class="divider" />
-
+                <!--Lietotāju saraksts-->
                 <div class="users-list-section">
                     <h3>Esošie lietotāji</h3>
                     <ul>
@@ -201,7 +202,7 @@ const users = ref([]);
 const isAdmin = ref(false);
 const currentUserId = ref(null);
 const showUsers = ref(false);
-
+/* Lietotāju dati */
 const newUser = ref({
     username: '',
     email: '',
@@ -222,7 +223,7 @@ const emailError = computed(() => {
     if (!emailRegex.test(form.value.email)) return 'Nederīgs e-pasta formāts';
     return '';
 });
-
+/* Formas validācija */
 const formIsValid = computed(() => {
     return !usernameError.value && !emailError.value;
 });
@@ -246,11 +247,11 @@ const newUserPasswordError = computed(() => {
 });
 
 const newUserFormIsValid = computed(() => {
-    return newUser.value.username && 
-           newUser.value.email && 
+    return newUser.value.username &&
+           newUser.value.email &&
            newUser.value.password &&
-           !newUserUsernameError.value && 
-           !newUserEmailError.value && 
+           !newUserUsernameError.value &&
+           !newUserEmailError.value &&
            !newUserPasswordError.value;
 });
 
@@ -278,7 +279,7 @@ async function fetchUser() {
         router.visit('/login');
     }
 }
-
+/* Lietotāja statistikas iegūšana */
 async function fetchStats() {
     if (!user.value.id) return;
     try {
@@ -328,7 +329,7 @@ function showMessage(msg) {
     visible.value = true;
     setTimeout(() => (visible.value = false), 3000);
 }
-
+/* Profila saglabāšana */
 async function saveProfile() {
     if (!formIsValid.value) {
         showMessage('Datu formāts nav pareizs');
@@ -368,7 +369,7 @@ async function fetchUsers() {
         console.error("Failed to fetch users", e);
     }
 }
-
+/* Lietotāja administratora statuss */
 async function checkAdminStatus() {
     try {
         const { data } = await axios.get('/user');
@@ -389,7 +390,7 @@ async function addNewUser() {
         showMessage('Lūdzu, aizpildiet visus laukus pareizi');
         return;
     }
-    
+
     try {
         await axios.post('/admin/users', {
             username: newUser.value.username,
@@ -397,7 +398,7 @@ async function addNewUser() {
             password: newUser.value.password,
             is_admin: newUser.value.is_admin
         });
-        
+
         showMessage('Lietotājs veiksmīgi pievienots');
 
         newUser.value = {
@@ -406,22 +407,22 @@ async function addNewUser() {
             password: '',
             is_admin: false
         };
-        
+
         await fetchUsers();
     } catch (e) {
         console.error("Failed to add user:", e);
         showMessage(e.response?.data?.message || 'Kļūda, pievienojot lietotāju');
     }
 }
-
+/* Paaugstināt lietotāja lomu uz administratoru */
 async function promoteToAdmin(userId) {
     if (!confirm("Padarīt šo lietotāju par administratoru?")) return;
-    
+
     try {
         await axios.patch(`/admin/users/${userId}/role`, {
             is_admin: true
         });
-        
+
         showMessage('User promoted to admin');
         await fetchUsers();
     } catch (e) {
@@ -429,7 +430,7 @@ async function promoteToAdmin(userId) {
         showMessage('Kļūda, paaugstinot lietotāja lomu');
     }
 }
-
+/* Noņemt administratora lomu */
 async function demoteFromAdmin(userId) {
     if (!confirm("Atņemt administratora privilēģijas šim lietotājam?")) return;
 
@@ -445,7 +446,7 @@ async function demoteFromAdmin(userId) {
         showMessage('Kļūda, atņemot administratora lomu');
     }
 }
-
+/* Dzēst lietotāju */
 async function deleteUser(id) {
     if (!confirm("Dzēst šo lietotāju? Šo darbību nevar atcelt.")) return;
     try {
@@ -457,7 +458,7 @@ async function deleteUser(id) {
         showMessage('Kļūda, dzēšot lietotāju');
     }
 }
-
+/* Iziet no sistēmas */
 const logout = async () => {
     await axios.post('/logout');
     router.visit('/');
