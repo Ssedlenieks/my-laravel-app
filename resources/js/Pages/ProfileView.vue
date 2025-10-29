@@ -26,7 +26,7 @@
             </div>
             <div class="info-item">
                 <label>Kopējais reakciju skaits:</label>
-                <span>{{ totalLikes }}</span>
+                <span>{{ totalReactions }}</span>
             </div>
         </div>
 
@@ -196,7 +196,7 @@ const preview = ref(null);
 const message = ref('');
 const visible = ref(false);
 const postCount = ref(0);
-const totalLikes = ref(0);
+const totalReactions = ref(0);
 
 const users = ref([]);
 const isAdmin = ref(false);
@@ -287,16 +287,26 @@ async function fetchStats() {
             params: { user_id: user.value.id }
         });
         postCount.value = Array.isArray(posts) ? posts.length : 0;
-        let likesSum = 0;
+        let reactionsSum = 0;
         for (const post of posts) {
-            if (post.reactionCounts && typeof post.reactionCounts.like === 'number') {
-                likesSum += post.reactionCounts.like;
+            if (post.reactionCounts && (typeof post.reactionCounts.like === 'number' || typeof post.reactionCounts.dislike === 'number' || typeof post.reactionCounts.heart === 'number')) {
+                const like = Number(post.reactionCounts.like || 0);
+                const dislike = Number(post.reactionCounts.dislike || 0);
+                const heart = Number(post.reactionCounts.heart || 0);
+                reactionsSum += like + dislike + heart;
             } else {
-                const { data: reactions } = await axios.get(`/posts/${post.id}/reactions`);
-                likesSum += reactions.like || 0;
+                try {
+                    const { data: reactions } = await axios.get(`/posts/${post.id}/reactions`);
+                    const like = Number(reactions.like || 0);
+                    const dislike = Number(reactions.dislike || 0);
+                    const heart = Number(reactions.heart || 0);
+                    reactionsSum += like + dislike + heart;
+                } catch (err) {
+                    console.error(`Failed to fetch reactions for post ${post.id}:`, err);
+                }
             }
         }
-        totalLikes.value = likesSum;
+        totalReactions.value = reactionsSum;
     } catch (e) {
         console.error('Error fetching stats:', e);
     }
@@ -322,7 +332,7 @@ function showMessage(msg) {
 /* Profila saglabāšana */
 async function saveProfile() {
     if (!formIsValid.value) {
-        showMessage('Provided data format is invalid');
+        showMessage('Datu formāts nav pareizs');
         return;
     }
     try {
@@ -536,10 +546,6 @@ button {
     margin: 8px 6px 0 0;
 }
 
-button:hover:not(:disabled) {
-    background-color: var(--input-bg);
-}
-
 button:disabled {
     opacity: 0.5;
     cursor: not-allowed;
@@ -636,11 +642,6 @@ button:disabled {
     cursor: pointer;
     font-size: 15px;
     display: block;
-    transition: background-color 0.2s;
-}
-
-.admin-toggle:hover {
-    background-color: #555;
 }
 
 .admin-panel-box {
