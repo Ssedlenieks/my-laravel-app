@@ -1,7 +1,7 @@
 <template>
   <div class="post-form">
     <div class="content-wrapper">
-      <!-- Search and Filters -->
+      <!-- Meklēšana un filtri -->
       <SearchFilters
         v-if="categories.length"
         :categories="categories"
@@ -13,10 +13,9 @@
         @sort-changed="handleSortChanged"
       />
 
-      <!-- Posts Layout -->
+      <!-- Publikācijas izkārtojums -->
       <div class="post-container">
         <div class="posts-layout">
-          <!-- Posts Grid -->
           <div class="posts-grid-column" :class="{ 'with-expanded': expandedPostId }">
             <div v-if="posts.length" class="post-row">
               <PostCard
@@ -36,7 +35,7 @@
             </div>
           </div>
 
-          <!-- Expanded Post Column -->
+          <!-- Pilnīgi atvērtas publikācija -->
           <div v-if="expandedPostId" class="expanded-post-column">
             <div class="expanded-post-card">
               <div class="expanded-header">
@@ -66,7 +65,7 @@
                         <img :src="post.image_url" class="expanded-post-image" />
                       </div>
 
-                      <!-- Dictionary Component (handles content display and word clicking) -->
+                      <!-- Vārdnīcas komponenta pievienošana -->
                       <MeaningLookup
                         :content="post.content"
                         :postId="post.id"
@@ -75,7 +74,7 @@
                       />
                     </div>
 
-                    <!-- Comments Section -->
+                    <!-- Komentāru komponenta pievienošana -->
                     <CommentsSection
                       :comments="post.comments || []"
                       :isLoggedIn="isLoggedIn"
@@ -92,7 +91,7 @@
         </div>
       </div>
 
-      <!-- Create Post Section -->
+      <!-- Publikācijas izveides sadaļa -->
       <div v-if="isLoggedIn" class="create-post-wrapper">
         <div class="create-post-container">
           <h2 class="create-title">Rakstiet savas domas</h2>
@@ -129,7 +128,7 @@
         </div>
       </div>
 
-      <!-- Edit Post Modal -->
+      <!-- Rediģēšanas modālais logs -->
       <div v-if="editingPost" class="modal" @click="cancelEdit">
         <div class="modal-content full-post-container" @click.stop>
           <div class="edit-form-col">
@@ -220,7 +219,7 @@ export default {
     };
   },
   methods: {
-    // Search and Filter Methods
+// Metodes meklēšanai un filtrēšanai
     handleSearch(query) {
       this.searchQuery = query;
       this.searchActive = true;
@@ -248,7 +247,7 @@ export default {
       return text.replace(new RegExp(`(${esc})`, "gi"), "<mark>$1</mark>");
     },
 
-    // Post Expansion Methods
+    // Publikāciju paplašināšanas metodes
     async togglePostExpand(postId) {
       if (this.expandedPostId === postId) {
         this.closeExpandedPost();
@@ -257,18 +256,14 @@ export default {
         this.selectedWord = "";
         await this.fetchComments(postId);
 
-        // Scroll to expanded post on mobile
         this.$nextTick(() => {
           if (window.innerWidth <= 768) {
-            // Wait a bit for the DOM to fully render
             setTimeout(() => {
               const expandedEl = document.querySelector('.expanded-post-column');
               if (expandedEl) {
-                // Get position relative to viewport
                 const rect = expandedEl.getBoundingClientRect();
                 const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
 
-                // Calculate position with small offset
                 const targetPosition = rect.top + scrollTop - 10;
 
                 window.scrollTo({
@@ -288,7 +283,7 @@ export default {
       this.currentLookupPostId = null;
     },
 
-    // Dictionary Methods
+    // Vārdnīcas metodes
     handleMeaningModeChanged(data) {
       if (data.postId) {
         this.postMeaningModes[data.postId] = data.mode;
@@ -329,7 +324,7 @@ export default {
       this.currentLookupPostId = data.postId;
     },
 
-    // Comments Methods
+    // Komentāru metodes
     async fetchComments(postId) {
       try {
         const res = await axios.get(`/posts/${postId}/comments`);
@@ -360,7 +355,7 @@ export default {
       }
     },
 
-    // Posts Methods
+    // Publikāciju metodes
     async fetchPosts() {
       try {
         const token = ++this.lastFetchToken;
@@ -392,7 +387,7 @@ export default {
           );
         }
 
-        // Apply search filter
+        // Meklēšanas filtrs
         if (this.searchActive && this.searchQuery.trim()) {
           const q = this.searchQuery.trim().toLowerCase();
           fetched = fetched.filter(p =>
@@ -442,7 +437,7 @@ export default {
       }
     },
 
-    // Authentication Methods
+    // Autentifikācijas metodes
     async checkLoginStatus() {
       try {
         const res = await axios.get("/user");
@@ -454,7 +449,7 @@ export default {
       } catch {}
     },
 
-    // Categories Methods
+    // Kategoriju metodes
     async fetchCategories() {
       try {
         const res = await axios.get("/categories");
@@ -462,7 +457,7 @@ export default {
       } catch {}
     },
 
-    // Post Creation/Editing Methods
+    // Publikāciju izveides/rediģēšanas metodes
     handleImageUpload(e) {
       this.imageFile = e.target.files[0];
       if (this.editingPost && this.imageFile) {
@@ -552,7 +547,6 @@ export default {
 </script>
 
 <style scoped>
-/* CSS Variables for Light and Dark Mode */
 .post-form {
   --post-bg: #ffffff;
   --post-text: #2c3e50;
