@@ -115,15 +115,6 @@
                         />
                         <p v-if="newUserPasswordError" class="error-text">{{ newUserPasswordError }}</p>
                     </div>
-                    <div class="input-group checkbox-group">
-                        <label>
-                            <input
-                                v-model="newUser.is_admin"
-                                type="checkbox"
-                            />
-                            Padarīt šo lietotāju par administratoru
-                        </label>
-                    </div>
                     <button
                         @click="addNewUser"
                         :disabled="!newUserFormIsValid"
@@ -478,6 +469,9 @@ onMounted(async () => {
     max-width: 700px;
     margin: 50px auto;
     padding: 20px;
+    /* reserve space at the bottom so absolutely positioned notifications don't overlap content */
+    padding-bottom: 120px;
+    position: relative;
     background-color: var(--post-bg);
     border: 1px solid var(--post-border);
     border-radius: 5px;
@@ -558,13 +552,19 @@ button:disabled {
 }
 
 .error-notification {
-    margin-top: 16px;
+    /* place notifications visually at the bottom of the admin panel area */
+    position: absolute;
+    left: 20px;
+    right: 20px;
+    bottom: 20px;
     padding: 12px;
     background-color: var(--input-bg);
     color: var(--post-text);
     border: 1px solid var(--input-border);
     border-radius: 4px;
     font-size: 14px;
+    z-index: 60;
+    box-sizing: border-box;
 }
 
 .edit-form {
