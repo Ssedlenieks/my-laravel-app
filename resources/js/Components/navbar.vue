@@ -74,7 +74,6 @@ export default {
         },
     },
     mounted() {
-        // Initialize dark mode state from the global manager
         if (window.darkModeManager) {
             this.isDarkMode = window.darkModeManager.getCurrentMode();
         }

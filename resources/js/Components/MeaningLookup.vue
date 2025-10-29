@@ -1,11 +1,11 @@
 <template>
   <div class="meaning-lookup">
-    <!-- Dictionary toggle button -->
+    <!-- Vārdnīcas pārslēgs -->
     <button @click="toggleMeaningMode" class="btn-meaning">
       {{ internalMeaningMode ? 'Izslēgt vārdnīcu' : 'Ieslēgt vārdnīcu' }}
     </button>
 
-    <!-- Clickable content when meaning mode is active -->
+    <!-- Satura zona, kad vārdnīcas režīms ir aktīvs -->
     <div v-if="internalMeaningMode" class="clickable-content">
       <p class="meaning-mode-text">
         <template v-for="(token, index) in tokenizeContent(content)" :key="index">
@@ -22,12 +22,11 @@
       </p>
     </div>
 
-    <!-- Regular content when meaning mode is off -->
     <div v-else class="regular-content">
       <p>{{ content }}</p>
     </div>
 
-    <!-- Dictionary section with selected word meaning -->
+    <!-- Vārdnīcas sadaļa ar izvēlēto vārdu skaidrojumu -->
     <div v-if="internalMeaningMode && selectedWord" class="meaning-section">
       <div class="meaning-header" @click="toggleMeaningExpanded">
         <h4>📖 Vārda skaidrojums</h4>
@@ -131,7 +130,6 @@ export default {
       this.wordMeaningData = "";
       this.meaningExpanded = true;
 
-      // Emit the word selection event to parent
       this.$emit('word-selected', { word: clean, postId: postId });
 
       try {
@@ -156,8 +154,6 @@ export default {
       if (!this.meaningMode) {
         return this.content;
       }
-
-      // Return tokenized content for click handling
       return this.tokenizeContent(this.content);
     }
   }

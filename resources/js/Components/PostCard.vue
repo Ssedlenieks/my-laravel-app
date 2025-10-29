@@ -128,7 +128,6 @@ export default {
 </script>
 
 <style scoped>
-/* CSS Variables for Light and Dark Mode */
 .post-card {
   --post-bg: #ffffff;
   --post-text: #2c3e50;
@@ -137,7 +136,6 @@ export default {
   --input-border: #d1d5db;
 }
 
-/* Dark mode support - matches body.dark from navbar toggle */
 body.dark .post-card,
 body.dark-mode .post-card {
   --post-bg: #1f2937;

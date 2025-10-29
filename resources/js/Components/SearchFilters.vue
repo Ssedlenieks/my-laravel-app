@@ -92,7 +92,6 @@ export default {
 </script>
 
 <style scoped>
-/* CSS Variables for Light and Dark Mode */
 .search-filters {
   --post-bg: #ffffff;
   --post-text: #2c3e50;
@@ -104,7 +103,6 @@ export default {
   --button-hover-bg: #1976d2;
 }
 
-/* Dark mode support - matches body.dark from navbar toggle */
 body.dark .search-filters,
 body.dark-mode .search-filters {
   --post-bg: #1f2937;
